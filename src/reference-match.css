@@ -211,6 +211,18 @@ footer .logo-image-wrap{width:48px;height:48px}
 @media(max-width:900px){.plan-grid{grid-template-columns:repeat(2,1fr)}.plan-card.featured{transform:none}.plan-card.featured:hover{transform:translateY(-7px)}}
 @media(max-width:700px){.subscription-plans:before{inset:4% 0}.plan-grid{grid-template-columns:1fr;gap:14px;margin-top:35px}.plan-card,.plan-card.featured{padding:25px 22px}.plan-card>p{min-height:0}.plan-card.featured{order:-1}}
 @media(prefers-reduced-motion:reduce){.plan-card{transition:none}}
+.subscription-modal-backdrop{position:fixed;inset:0;z-index:110;display:grid;place-items:center;padding:24px;background:rgba(42,24,15,.48);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);animation:subscription-fade .25s ease both}
+.subscription-modal{position:relative;width:min(1180px,100%);max-height:calc(100vh - 48px);overflow:auto;padding:74px 38px 38px;border:1px solid rgba(255,239,207,.52);border-radius:30px;background:linear-gradient(135deg,rgba(255,248,237,.82),rgba(234,216,191,.62));box-shadow:inset 0 1px 0 rgba(255,255,255,.72),0 30px 80px rgba(27,13,7,.34);backdrop-filter:blur(26px) saturate(145%);-webkit-backdrop-filter:blur(26px) saturate(145%);animation:subscription-in .35s cubic-bezier(.2,.8,.2,1) both}
+.subscription-modal:before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;background:linear-gradient(112deg,transparent 20%,rgba(255,255,255,.2) 48%,transparent 74%);transform:translateX(-130%);animation:subscription-shine 7s ease-in-out 1s infinite;pointer-events:none}
+.subscription-modal .section-intro{max-width:680px}
+.subscription-modal .plan-grid{margin-top:36px}
+.subscription-modal-close{position:absolute;top:22px;right:24px;z-index:2;display:grid;place-items:center;width:42px;height:42px;border:1px solid rgba(166,119,56,.35);border-radius:14px;background:rgba(255,255,255,.38);color:#704321;cursor:pointer;transition:transform .25s ease,background .25s ease}
+.subscription-modal-close:hover{transform:rotate(6deg) scale(1.05);background:rgba(255,255,255,.72)}
+@keyframes subscription-fade{from{opacity:0}to{opacity:1}}
+@keyframes subscription-in{from{opacity:0;transform:translateY(18px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes subscription-shine{0%,58%{transform:translateX(-130%)}78%,100%{transform:translateX(130%)}}
+@media(max-width:700px){.subscription-modal-backdrop{padding:12px}.subscription-modal{max-height:calc(100vh - 24px);padding:66px 18px 24px;border-radius:22px}.subscription-modal-close{top:16px;right:16px}.subscription-modal .plan-grid{margin-top:28px}}
+@media(prefers-reduced-motion:reduce){.subscription-modal-backdrop,.subscription-modal,.subscription-modal:before,.subscription-modal-close{transition:none;animation:none}}
 
 /* Product demo: real video inside the court-brown glass shell */
 .product-3d-shell{position:relative;isolation:isolate;border:1px solid rgba(182,132,67,.46);border-radius:24px;background:#3a2418;box-shadow:inset 0 1px 0 rgba(255,255,255,.32),0 24px 52px rgba(73,43,24,.2);overflow:hidden}
