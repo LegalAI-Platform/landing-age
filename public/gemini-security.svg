@@ -1,0 +1,45 @@
+<svg width="250" height="250" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Soft Glow Filter -->
+    <filter id="folderGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3.5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    
+    <!-- Elegant Gold Gradient -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCEABB" />
+      <stop offset="50%" stop-color="#C69C5D" />
+      <stop offset="100%" stop-color="#8A6327" />
+    </linearGradient>
+    
+    <!-- Dark Gradient for Folder Depth -->
+    <linearGradient id="darkBrownGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3A2D24" />
+      <stop offset="100%" stop-color="#150F0B" />
+    </linearGradient>
+  </defs>
+
+  <!-- Ambient Glowing Rings -->
+  <circle cx="50" cy="50" r="38" fill="none" stroke="#C69C5D" stroke-width="0.5" opacity="0.4" filter="url(#folderGlow)" />
+  <circle cx="50" cy="50" r="45" fill="none" stroke="#C69C5D" stroke-width="0.2" opacity="0.2" />
+
+  <!-- Back Flap of the Folder -->
+  <path d="M 25 35 L 40 35 L 45 40 L 75 40 L 75 65 L 25 65 Z" fill="url(#darkBrownGrad)" stroke="url(#goldGrad)" stroke-width="1.2" stroke-linejoin="round"/>
+
+  <!-- Legal Document Sticking Out -->
+  <rect x="33" y="28" width="34" height="30" rx="1" fill="#E8D5B5" opacity="0.9" />
+  <!-- Document Lines -->
+  <line x1="38" y1="34" x2="62" y2="34" stroke="#8A6327" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="38" y1="40" x2="54" y2="40" stroke="#8A6327" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="38" y1="46" x2="62" y2="46" stroke="#8A6327" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Front Flap of the Folder -->
+  <path d="M 20 45 L 80 45 L 75 70 L 25 70 Z" fill="#201813" stroke="url(#goldGrad)" stroke-width="2" stroke-linejoin="round" filter="url(#folderGlow)"/>
+
+  <!-- Central Golden Wax Seal / Lock -->
+  <circle cx="50" cy="55" r="7" fill="url(#goldGrad)" />
+  <circle cx="50" cy="55" r="5" fill="#201813" />
+  <!-- Inner Diamond inside the seal -->
+  <polygon points="50,52 52.5,55 50,58 47.5,55" fill="url(#goldGrad)" />
+</svg>

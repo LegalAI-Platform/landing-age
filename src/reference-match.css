@@ -111,9 +111,13 @@ footer .logo-image-wrap{width:48px;height:48px}
 .security-grid b{color:#fff4e5}
 .security-grid p{color:rgba(255,244,229,.68);margin:6px 0 0}
 .security-3d:before{border-color:rgba(224,184,117,.38);box-shadow:0 0 65px rgba(182,132,67,.22)}
+.security-gemini{display:grid;place-items:center}
+.security-gemini:before{inset:7%;z-index:0}
+.security-gemini img{position:relative;z-index:1;width:min(100%,260px);height:auto;display:block;filter:drop-shadow(0 0 18px rgba(198,156,93,.25));animation:security-gemini-float 5s ease-in-out infinite}
+@keyframes security-gemini-float{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-8px) scale(1.015)}}
 @media(max-width:900px){.security-grid{gap:12px}.security-grid article{min-height:140px;padding:20px 18px}}
 @media(max-width:700px){.security:before{width:270px;height:270px;right:-12%;top:7%}.security-grid{gap:12px}.security-grid article{min-height:125px;border-radius:15px}}
-@media(prefers-reduced-motion:reduce){.security-grid article,.security-grid article:before,.security .light-link{transition:none}}
+@media(prefers-reduced-motion:reduce){.security-grid article,.security-grid article:before,.security .light-link,.security-gemini img{transition:none;animation:none}}
 
 /* Product demo: real video inside the court-brown glass shell */
 .product-3d-shell{position:relative;isolation:isolate;border:1px solid rgba(182,132,67,.46);border-radius:24px;background:#3a2418;box-shadow:inset 0 1px 0 rgba(255,255,255,.32),0 24px 52px rgba(73,43,24,.2);overflow:hidden}
