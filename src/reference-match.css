@@ -62,7 +62,8 @@ footer .logo-image-wrap{width:48px;height:48px}
 .hero-3d .hero-copy h1 em{color:#a97537}.brand-name{background:linear-gradient(120deg,#41291b 18%,#6e4828 62%,#b68545 100%);-webkit-background-clip:text;background-clip:text}
 .button:not(.button-secondary){background:linear-gradient(135deg,rgba(58,36,24,.94),rgba(111,72,39,.84));border-color:rgba(255,238,210,.3)}
 .button-secondary{color:#4a2e1d;border-color:rgba(111,72,39,.3)}
-.reference-visual img,.reference-services-inner>img,.reference-laptop-art img{filter:sepia(.11) saturate(.9)}
+.reference-visual img{filter:sepia(.42) saturate(.82) hue-rotate(337deg) contrast(1.03)}
+.reference-services-inner>img,.reference-laptop-art img{filter:sepia(.11) saturate(.9)}
 .reference-services-inner{position:relative;overflow:hidden}
 .reference-image-cta{position:absolute;z-index:4;top:67.5%;right:4.2%;width:17.5%;height:12.5%;display:flex;align-items:center;justify-content:center;gap:10px;color:#fff5e8;font-size:clamp(10px,1.15vw,17px);font-weight:700;white-space:nowrap;text-decoration:none;border:1px solid rgba(255,238,210,.42);border-radius:18px;background:linear-gradient(135deg,rgba(58,36,24,.84),rgba(111,72,39,.58));box-shadow:inset 0 1px 0 rgba(255,255,255,.34),0 12px 28px rgba(34,17,8,.34);backdrop-filter:blur(16px) saturate(150%);-webkit-backdrop-filter:blur(16px) saturate(150%);transition:transform .28s cubic-bezier(.2,.8,.2,1),background .28s ease,border-color .28s ease,box-shadow .28s ease;cursor:pointer;overflow:hidden}
 .reference-image-cta:before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(110deg,transparent 24%,rgba(255,255,255,.42) 48%,transparent 70%);transform:translateX(-130%);transition:transform .7s ease}
