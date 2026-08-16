@@ -116,4 +116,4 @@ function CTA() { return <section className="cta" id="ابدأ"><div className="c
 
 function Footer() { return <footer><div><Logo/><p>ذكاء قانوني مصمم للمهنيين.</p></div><div className="footer-links"><a href="#المميزات">المميزات</a><a href="#الأمان">الأمان</a><a href="#الأسئلة الشائعة">الأسئلة الشائعة</a><a href="#english" lang="en">English</a></div><small>© ٢٠٢٦ Counsel AI. جميع الحقوق محفوظة.</small></footer> }
 
-export default function App() { return <><a className="skip" href="#main">انتقل إلى المحتوى</a><Nav/><main id="main"><Hero/><Trust/><ReferenceScrollVisuals/><Workflow/><Problems/><Features/><ProductShowcase/><AnalysisShowcase/><AssistantShowcase/><Security/><Steps/><FAQ/><CTA/></main><Footer/></> }
+export default function App() { return <><a className="skip" href="#main">انتقل إلى المحتوى</a><Nav/><main id="main"><Hero/><Trust/><ReferenceScrollVisuals/><Workflow/><Problems/><Features/><ProductShowcase/><AssistantShowcase/><AnalysisShowcase/><Security/><Steps/><FAQ/><CTA/></main><Footer/></> }
