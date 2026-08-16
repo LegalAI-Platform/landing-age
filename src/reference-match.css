@@ -147,6 +147,27 @@ footer .logo-image-wrap{width:48px;height:48px}
 @media(prefers-reduced-motion:reduce){.cta .button,.cta .button:before,.cta-brand,.cta-brand:before,.cta-brand-mark,.cta-brand-mark img,.cta-brand-mark:after{transition:none;animation:none}.cta-brand-mark:after,.cta-brand:before{display:none}}
 @media(max-width:700px){.cta-brand{min-width:154px;padding:16px 24px 18px}.cta-brand-mark{width:92px;height:92px}}
 
+/* Assistant showcase: brown iOS liquid glass conversation UI */
+.assistant-show{position:relative;isolation:isolate;background:radial-gradient(circle at 72% 42%,rgba(182,132,67,.16),transparent 30%),linear-gradient(135deg,#f4ece2 0%,#eadfD2 100%);overflow:hidden}
+.assistant-show:before{content:"";position:absolute;inset:9% 5%;z-index:-1;border:1px solid rgba(182,132,67,.16);border-radius:42px;box-shadow:0 0 90px rgba(182,132,67,.1);pointer-events:none}
+.chat-card{position:relative;isolation:isolate;background:linear-gradient(135deg,rgba(255,252,247,.7),rgba(234,216,191,.3));border:1px solid rgba(166,119,56,.34);border-radius:24px;box-shadow:inset 0 1px 0 rgba(255,255,255,.88),0 22px 48px rgba(73,43,24,.14);backdrop-filter:blur(22px) saturate(135%);-webkit-backdrop-filter:blur(22px) saturate(135%);overflow:hidden;transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s ease,border-color .35s ease}
+.chat-card:before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(112deg,transparent 18%,rgba(255,255,255,.34) 48%,transparent 74%);transform:translateX(-130%);animation:chat-glass-shine 8s ease-in-out 1s infinite;pointer-events:none}
+.chat-card:hover{transform:translateY(-6px);border-color:rgba(166,119,56,.58);box-shadow:inset 0 1px 0 rgba(255,255,255,.94),0 28px 58px rgba(73,43,24,.2)}
+.chat-header{border-bottom-color:rgba(166,119,56,.2);color:#4b3020}
+.chat-header button{color:#927044}
+.online{background:#5da27c;box-shadow:0 0 0 4px rgba(93,162,124,.12)}
+.user-message{background:linear-gradient(135deg,rgba(225,231,226,.78),rgba(255,255,255,.42));border:1px solid rgba(166,119,56,.1);color:#4b3020;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.ai-avatar{background:linear-gradient(145deg,#5b3924,#3a2418);box-shadow:0 7px 15px rgba(73,43,24,.18)}
+.ai-message p{color:#5c4434}
+.source{color:#887466}
+.suggestions button{border:1px solid rgba(166,119,56,.3);background:linear-gradient(135deg,rgba(255,255,255,.62),rgba(234,216,191,.28));color:#704321;box-shadow:inset 0 1px 0 rgba(255,255,255,.78),0 8px 16px rgba(73,43,24,.08);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);transition:transform .25s ease,border-color .25s ease,background .25s ease,box-shadow .25s ease}
+.suggestions button:hover{transform:translateY(-3px);border-color:rgba(166,119,56,.62);background:linear-gradient(135deg,rgba(255,255,255,.8),rgba(205,166,111,.3));box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 13px 22px rgba(73,43,24,.14)}
+.chat-input{border-top-color:rgba(166,119,56,.2);color:#8c7768}
+.chat-input svg{color:#a56f2e}
+@keyframes chat-glass-shine{0%,58%{transform:translateX(-130%)}78%,100%{transform:translateX(130%)}}
+@media(max-width:700px){.assistant-show:before{inset:4% 0}.chat-card{border-radius:18px}.suggestions{flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){.chat-card,.chat-card:before,.suggestions button{transition:none;animation:none}}
+
 /* Product demo: real video inside the court-brown glass shell */
 .product-3d-shell{position:relative;isolation:isolate;border:1px solid rgba(182,132,67,.46);border-radius:24px;background:#3a2418;box-shadow:inset 0 1px 0 rgba(255,255,255,.32),0 24px 52px rgba(73,43,24,.2);overflow:hidden}
 .product-3d-shell:before{content:"";position:absolute;inset:14px;z-index:2;border:1px solid rgba(234,216,191,.3);border-radius:15px;pointer-events:none}
