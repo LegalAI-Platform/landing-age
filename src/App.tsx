@@ -82,7 +82,7 @@ function RevealSection({ children, className, id }: { children: React.ReactNode,
 function ReferenceScrollVisuals() {
   return <>
     <RevealSection className="reference-services" id="المميزات"><div className="reference-services-inner"><img src="/legal-workspace-section-clean.png" alt="مساحة عمل قانونية متكاملة تعرض تحليل المستندات والمخاطر والمساعد القانوني" /><a className="reference-image-cta" href="#ابدأ" aria-label="استكشف المنصة"><span>استكشف المنصة</span><ArrowLeft size={17} aria-hidden="true" /></a></div></RevealSection>
-    <RevealSection className="reference-laptop"><div className="reference-laptop-copy"><span className="eyebrow">رؤية أوضح للمستند</span><h2>راجع البنود المهمة<br/>في مساحة واحدة.</h2><p>تظهر الملاحظات، البنود التي تحتاج إلى مراجعة، ومستوى المخاطر بجوار المستند مباشرة.</p><a className="button" href="#ابدأ">استكشف تجربة التحليل <ArrowLeft size={17} aria-hidden="true" /></a></div><div className="reference-laptop-art"><img src="/smart-legal-laptop-transparent.png" alt="حاسوب محمول يعرض المساعد القانوني وتحليل عقد خدمات" /></div></RevealSection>
+    <RevealSection className="reference-laptop"><div className="reference-laptop-copy"><span className="eyebrow">رؤية أوضح للمستند</span><h2>راجع البنود المهمة<br/>في مساحة واحدة.</h2><p>تظهر الملاحظات، البنود التي تحتاج إلى مراجعة، ومستوى المخاطر بجوار المستند مباشرة.</p><a className="button" href="#ابدأ">استكشف تجربة التحليل <ArrowLeft size={17} aria-hidden="true" /></a></div><div className="reference-laptop-art"><img src="/smart-legal-laptop-cutout-new.png" alt="حاسوب محمول يعرض المساعد القانوني وتحليل عقد خدمات" /></div></RevealSection>
   </>
 }
 
