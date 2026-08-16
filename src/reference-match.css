@@ -16,6 +16,21 @@
 @media(max-width:900px){.hero.hero-3d{min-height:630px}.legal-3d-stage{height:500px}}
 @media(max-width:700px){.hero.hero-3d{padding-top:42px}.hero-3d .hero-copy{padding:10px 14px 16px;background:transparent;box-shadow:none}.hero.hero-3d:after{inset:31% -30% 0 0;background-color:var(--ivory);background-image:linear-gradient(180deg,rgba(247,245,240,.9) 0%,rgba(247,245,240,.3) 48%,rgba(247,245,240,.78) 100%),url('/legal-team-hero.jpg');background-size:cover, 620px auto;background-position:center, center bottom;background-blend-mode:normal,multiply;opacity:.34}.legal-3d-stage{height:410px}.trust{min-height:0}.reference-visual{margin-top:10px}.reference-scan{animation-duration:5.8s}.reference-status{font-size:9px;right:5%;bottom:7%}.reference-services{padding:0 20px}.reference-services-inner{display:flex;flex-direction:column;align-items:stretch;gap:0;padding-top:52px;min-height:0}.reference-services-copy{padding:0}.reference-services h2{font-size:31px}.reference-services img{width:calc(100% + 40px);margin:18px -20px -12px;transform:none}.reference-laptop{display:flex;flex-direction:column;padding:70px 20px 25px;gap:20px;align-items:stretch}.reference-laptop-copy{padding-inline-start:0}.reference-laptop-copy h2{font-size:37px}.reference-laptop-art{min-height:235px}.reference-laptop-art img{width:125%;margin-inline-start:-12%}}
 
+/* iOS-inspired liquid glass controls with subtle hover motion. */
+.button,.menu,.app-header button,.chat-header button,.risk button,.suggestions button,.faq-list button{position:relative;overflow:hidden;isolation:isolate;transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s ease,background .28s ease,border-color .28s ease,color .28s ease}
+.button,.menu,.app-header button,.suggestions button{background:linear-gradient(135deg,rgba(255,255,255,.56),rgba(255,255,255,.18));border:1px solid rgba(255,255,255,.72);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 10px 24px rgba(7,29,48,.12);backdrop-filter:blur(16px) saturate(145%);-webkit-backdrop-filter:blur(16px) saturate(145%)}
+.button{color:var(--navy);border-color:rgba(190,156,93,.48)}
+.button:not(.button-secondary){background:linear-gradient(135deg,rgba(7,29,48,.92),rgba(27,67,87,.78));color:#fff;border-color:rgba(255,255,255,.28);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 12px 28px rgba(7,29,48,.2)}
+.button:hover,.menu:hover,.app-header button:hover,.suggestions button:hover,.faq-list button:hover{transform:translateY(-3px);box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 15px 30px rgba(7,29,48,.18)}
+.button:active,.menu:active,.app-header button:active,.chat-header button:active,.risk button:active,.suggestions button:active,.faq-list button:active{transform:translateY(0) scale(.97)}
+.button:after,.menu:after,.app-header button:after,.suggestions button:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(110deg,transparent 25%,rgba(255,255,255,.42) 48%,transparent 70%);transform:translateX(-130%);transition:transform .7s ease}
+.button:hover:after,.menu:hover:after,.app-header button:hover:after,.suggestions button:hover:after{transform:translateX(130%)}
+.button-secondary{background:rgba(255,255,255,.25);color:var(--navy);border-color:rgba(7,29,48,.2)}
+.chat-header button,.risk button,.faq-list button{background:transparent;border:1px solid transparent}
+.chat-header button:hover,.risk button:hover{transform:translateY(-2px);color:var(--gold);background:rgba(255,255,255,.32);border-color:rgba(190,156,93,.28);box-shadow:0 8px 18px rgba(7,29,48,.08)}
+.faq-list button:hover{color:#0a283c}
+@media(prefers-reduced-motion:reduce){.button,.menu,.app-header button,.chat-header button,.risk button,.suggestions button,.faq-list button{transition:none}.button:after,.menu:after,.app-header button:after,.suggestions button:after{display:none}}
+
 /* Arabic wordmark used as the primary brand mark. */
 .logo-image-wrap{width:38px;height:38px;display:block;overflow:hidden;border:1px solid rgba(190,156,93,.55);border-radius:50%;background:#151515;box-shadow:0 3px 10px rgba(7,29,48,.14);flex:none}
 .logo-image-wrap img{display:block;width:100%;height:100%;object-fit:cover}
