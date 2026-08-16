@@ -227,6 +227,21 @@ footer .logo-image-wrap{width:48px;height:48px}
 @media(max-width:700px){.subscription-modal-backdrop{padding:12px}.subscription-modal{max-height:calc(100vh - 24px);padding:66px 18px 24px;border-radius:22px}.subscription-modal-close{top:16px;right:16px}.subscription-modal .plan-grid{margin-top:28px}}
 @media(prefers-reduced-motion:reduce){.subscription-modal-backdrop,.subscription-modal,.subscription-modal:before,.subscription-modal-close{transition:none;animation:none}}
 
+/* Workflow steps: liquid glass progress cards */
+.steps{position:relative;isolation:isolate}
+.steps:before{content:"";position:absolute;inset:15% 3% 8%;z-index:-1;border-radius:34px;background:radial-gradient(circle at 50% 36%,rgba(182,132,67,.12),transparent 36%),linear-gradient(135deg,rgba(255,250,243,.25),rgba(234,216,191,.12));pointer-events:none}
+.steps-grid{gap:14px;margin-top:48px}
+.step{position:relative;min-height:140px;padding:24px 22px;border:1px solid rgba(166,119,56,.28);border-radius:20px;background:linear-gradient(135deg,rgba(255,255,255,.58),rgba(234,216,191,.24));box-shadow:inset 0 1px 0 rgba(255,255,255,.84),0 14px 28px rgba(73,43,24,.08);backdrop-filter:blur(18px) saturate(135%);-webkit-backdrop-filter:blur(18px) saturate(135%);overflow:hidden;transition:transform .32s cubic-bezier(.2,.8,.2,1),border-color .32s ease,box-shadow .32s ease,background .32s ease}
+.step:before{content:"";position:absolute;inset:0;background:linear-gradient(112deg,transparent 20%,rgba(255,255,255,.4) 48%,transparent 74%);transform:translateX(-130%);transition:transform .8s ease;pointer-events:none}
+.step:hover{transform:translateY(-7px);border-color:rgba(166,119,56,.62);background:linear-gradient(135deg,rgba(255,255,255,.72),rgba(205,166,111,.28));box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 22px 38px rgba(73,43,24,.16)}
+.step:hover:before{transform:translateX(130%)}
+.step strong{position:relative;z-index:1;font:700 30px 'Playfair Display',serif;color:#a56f2e;text-shadow:0 2px 10px rgba(166,119,56,.14)}
+.step span{position:relative;z-index:1;color:#4b3020;font-size:15px;font-weight:600}
+.step i{top:43px;left:-8px;height:54px;background:linear-gradient(180deg,transparent,var(--gold),transparent);opacity:.5}
+@media(max-width:900px){.steps-grid{grid-template-columns:repeat(2,1fr)}.step i{display:none}}
+@media(max-width:700px){.steps:before{inset:5% 0}.steps-grid{grid-template-columns:1fr;gap:12px;margin-top:35px}.step{min-height:105px;padding:20px;border-radius:16px}}
+@media(prefers-reduced-motion:reduce){.step,.step:before{transition:none}}
+
 /* Product demo: real video inside the court-brown glass shell */
 .product-3d-shell{position:relative;isolation:isolate;border:1px solid rgba(182,132,67,.46);border-radius:24px;background:#3a2418;box-shadow:inset 0 1px 0 rgba(255,255,255,.32),0 24px 52px rgba(73,43,24,.2);overflow:hidden}
 .product-3d-shell:before{content:"";position:absolute;inset:14px;z-index:2;border:1px solid rgba(234,216,191,.3);border-radius:15px;pointer-events:none}
