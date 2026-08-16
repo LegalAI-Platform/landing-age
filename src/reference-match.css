@@ -172,9 +172,21 @@ footer .logo-image-wrap{width:48px;height:48px}
 .demo-insight-row span{display:flex;align-items:center;gap:7px}
 .risk-dot{width:7px;height:7px;border-radius:50%;display:inline-block;box-shadow:0 0 0 3px rgba(166,119,56,.1)}
 .risk-dot.high{background:#a85f3b}.risk-dot.medium{background:#c79643}.risk-dot.low{background:#5e9b78}
+.assistant-demo-trigger{margin-top:24px;border-radius:16px;background:linear-gradient(135deg,rgba(91,53,31,.82),rgba(58,36,24,.64));border-color:rgba(166,119,56,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.34),0 13px 26px rgba(73,43,24,.16);cursor:pointer}
+.assistant-demo-trigger:hover{background:linear-gradient(135deg,rgba(111,72,39,.9),rgba(58,36,24,.74))}
+.demo-modal-backdrop{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:24px;background:rgba(42,24,15,.48);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);animation:demo-modal-fade .25s ease both}
+.demo-modal{width:min(900px,100%);padding:16px;border:1px solid rgba(255,239,207,.5);border-radius:26px;background:linear-gradient(135deg,rgba(255,248,237,.76),rgba(91,53,31,.55));box-shadow:inset 0 1px 0 rgba(255,255,255,.62),0 28px 70px rgba(27,13,7,.34);backdrop-filter:blur(24px) saturate(145%);-webkit-backdrop-filter:blur(24px) saturate(145%);animation:demo-modal-in .35s cubic-bezier(.2,.8,.2,1) both}
+.demo-modal-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:5px 5px 14px;color:#4b3020;direction:rtl}
+.demo-modal-header h3{margin:4px 0 0;font-size:clamp(18px,2.2vw,26px);line-height:1.35}
+.demo-modal-close{display:grid;place-items:center;width:40px;height:40px;flex:none;border:1px solid rgba(166,119,56,.35);border-radius:13px;background:rgba(255,255,255,.35);color:#704321;cursor:pointer;transition:transform .25s ease,background .25s ease}
+.demo-modal-close:hover{transform:rotate(6deg) scale(1.05);background:rgba(255,255,255,.68)}
+.demo-modal-video{width:100%;display:block;aspect-ratio:16/9;object-fit:contain;border:1px solid rgba(166,119,56,.28);border-radius:18px;background:#2d1a10;box-shadow:inset 0 1px 0 rgba(255,255,255,.24),0 16px 30px rgba(73,43,24,.18)}
+@keyframes demo-modal-fade{from{opacity:0}to{opacity:1}}
+@keyframes demo-modal-in{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes chat-glass-shine{0%,58%{transform:translateX(-130%)}78%,100%{transform:translateX(130%)}}
 @media(max-width:700px){.assistant-show:before{inset:4% 0}.chat-card{border-radius:18px}.suggestions{flex-wrap:wrap}}
-@media(prefers-reduced-motion:reduce){.chat-card,.chat-card:before,.suggestions button{transition:none;animation:none}}
+@media(max-width:700px){.assistant-demo-trigger{width:100%;margin-top:20px}.demo-modal-backdrop{padding:14px}.demo-modal{padding:11px;border-radius:20px}.demo-modal-header h3{font-size:17px}.demo-modal-close{width:36px;height:36px}.demo-modal-video{border-radius:13px}}
+@media(prefers-reduced-motion:reduce){.chat-card,.chat-card:before,.suggestions button,.demo-modal-backdrop,.demo-modal,.demo-modal-close{transition:none;animation:none}}
 
 /* Product demo: real video inside the court-brown glass shell */
 .product-3d-shell{position:relative;isolation:isolate;border:1px solid rgba(182,132,67,.46);border-radius:24px;background:#3a2418;box-shadow:inset 0 1px 0 rgba(255,255,255,.32),0 24px 52px rgba(73,43,24,.2);overflow:hidden}
