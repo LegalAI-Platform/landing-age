@@ -262,3 +262,22 @@ footer .logo-image-wrap{width:48px;height:48px}
 .reference-image-cta:hover{transform:translateY(-4px) scale(1.035);color:#fff5e8;background:linear-gradient(135deg,rgba(255,255,255,.2),rgba(190,134,62,.24));border-color:rgba(255,222,169,.74);box-shadow:inset 0 1px 0 rgba(255,255,255,.65),0 12px 30px rgba(34,17,8,.32);backdrop-filter:blur(9px) saturate(145%);-webkit-backdrop-filter:blur(9px) saturate(145%)}
 .reference-image-cta:active{transform:scale(.97)}
 @media(max-width:700px){.reference-image-cta{top:67%;right:7%;width:43%;height:14%;border-radius:14px;font-size:12px;gap:6px}.reference-image-cta:hover{transform:translateY(-2px) scale(1.02)}}
+
+/* Locale-aware UI adjustments. The document direction stays the source of truth. */
+.language,.footer-language{appearance:none;-webkit-appearance:none;cursor:pointer;font:inherit;background:transparent}
+.language{border:0;border-inline-start:1px solid var(--line);}
+.footer-language{border:0;color:inherit;padding:0}
+html[dir="ltr"] .hero,html[dir="ltr"] .product,html[dir="ltr"] .product-wrap,html[dir="ltr"] .showcase,html[dir="ltr"] .assistant-show{direction:ltr}
+html[dir="ltr"] .faq-list button{text-align:left}
+html[dir="ltr"] .chat-header button{float:right}
+html[dir="ltr"] .user-message{margin-left:auto;margin-right:0;border-radius:12px 3px 12px 12px}
+html[dir="ltr"] .product-clause{left:auto;right:24px}
+html[dir="ltr"] .reference-image-cta{right:auto;left:4.2%}
+html[dir="ltr"] .plan-badge{right:auto;left:22px}
+html[dir="ltr"] .subscription-modal-close{right:auto;left:24px}
+html[dir="ltr"] .demo-modal-header{direction:ltr}
+html[dir="ltr"] .step i{left:auto;right:-8px}
+html[dir="ltr"] .nav-links{direction:ltr}
+html[dir="ltr"] .nav-actions{direction:ltr}
+html[dir="ltr"] .button svg,html[dir="ltr"] .light-link svg,html[dir="ltr"] .reference-image-cta svg,html[dir="ltr"] .feature a svg,html[dir="ltr"] .faq-title a svg,html[dir="ltr"] .chat-input svg,html[dir="ltr"] .callout svg{transform:scaleX(-1)}
+@media(max-width:700px){html[dir="ltr"] .nav-links{right:auto;left:0}html[dir="ltr"] .product-clause{right:16px}html[dir="ltr"] .reference-image-cta{left:7%}html[dir="ltr"] .subscription-modal-close{left:16px}}

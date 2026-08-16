@@ -6,6 +6,7 @@ import { AIOrb } from './AIOrb'
 import { FloatingPanel3D } from './FloatingPanel3D'
 import { LegalDocument3D } from './LegalDocument3D'
 import { SecurityShield3D } from './SecurityShield3D'
+import { useI18n } from '../../i18n'
 
 function useReducedMotion() { const [reduced, setReduced] = useState(false); useEffect(() => { const query = matchMedia('(prefers-reduced-motion: reduce)'); const update = () => setReduced(query.matches); update(); query.addEventListener('change', update); return () => query.removeEventListener('change', update) }, []); return reduced }
 function useCompactScene() { const [compact, setCompact] = useState(false); useEffect(() => { const query = matchMedia('(max-width: 700px)'); const update = () => setCompact(query.matches); update(); query.addEventListener('change', update); return () => query.removeEventListener('change', update) }, []); return compact }
@@ -32,10 +33,11 @@ function Scene({ reduced, compact = false }: { reduced: boolean, compact?: boole
 }
 
 export function LegalAIHeroScene() {
+  const { lang } = useI18n()
   const reduced = useReducedMotion()
   const compact = useCompactScene()
-  return <div className="legal-3d-stage" aria-label="تصوّر تفاعلي للذكاء القانوني: مستندات وتحليل ومؤشرات أمان" role="img">
-    <div className="scene-label label-analysis"><span>تحليل المستند</span><b>جاري التحليل…</b></div><div className="scene-label label-risk"><span>مستوى المخاطر</span><b>متوسط</b></div><div className="scene-label label-ai"><span>AI Legal Assistant</span><b>٤ بنود مهمة</b></div>
+  return <div className="legal-3d-stage" aria-label={lang.hero.workspaceAria} role="img">
+    <div className="scene-label label-analysis"><span>{lang.hero.analysis}</span><b>{lang.hero.analyzing}…</b></div><div className="scene-label label-risk"><span>{lang.hero.risk}</span><b>{lang.hero.riskMedium}</b></div><div className="scene-label label-ai"><span>{lang.hero.ai}</span><b>{lang.hero.important}</b></div>
     <Canvas dpr={[1, compact ? 1.15 : 1.5]} camera={{ position: [0, 0, compact ? 7.2 : 6.7], fov: 39 }} gl={{ antialias: false, powerPreference: 'high-performance', alpha: true }}>
       <Suspense fallback={null}><ambientLight intensity={1.6} /><directionalLight position={[3, 4, 4]} intensity={2.2} color="#fff3d7" /><pointLight position={[-3, -1, 3]} intensity={8} color="#4d8195" /><Scene reduced={reduced} compact={compact} /><Environment preset="city" /></Suspense>
     </Canvas>
@@ -43,8 +45,9 @@ export function LegalAIHeroScene() {
 }
 
 export function LegalProductScene() {
+  const { lang } = useI18n()
   const reduced = useReducedMotion()
-  return <div className="product-3d-stage" aria-label="عرض توضيحي لتحليل عقد قانوني" role="img"><Canvas dpr={[1, 1.35]} camera={{ position: [0, 0, 6.2], fov: 40 }} gl={{ antialias: false, powerPreference: 'high-performance', alpha: true }}><Suspense fallback={null}><ambientLight intensity={1.6} /><directionalLight position={[2, 3, 4]} intensity={2} /><pointLight position={[-3, 1, 3]} intensity={7} color="#cda967" /><group rotation={[.08, -.12, 0]}><LegalDocument3D position={[0, 0, 0]} rotation={[.03, -.25, 0]} accent="#c29b57" reduced={reduced} /><FloatingPanel3D position={[-1.35, -.8, .25]} reduced={reduced} /><FloatingPanel3D position={[1.32, .7, .1]} color="#80afb7" reduced={reduced} /></group><Environment preset="city" /></Suspense></Canvas></div>
+  return <div className="product-3d-stage" aria-label={lang.product.aria} role="img"><Canvas dpr={[1, 1.35]} camera={{ position: [0, 0, 6.2], fov: 40 }} gl={{ antialias: false, powerPreference: 'high-performance', alpha: true }}><Suspense fallback={null}><ambientLight intensity={1.6} /><directionalLight position={[2, 3, 4]} intensity={2} /><pointLight position={[-3, 1, 3]} intensity={7} color="#cda967" /><group rotation={[.08, -.12, 0]}><LegalDocument3D position={[0, 0, 0]} rotation={[.03, -.25, 0]} accent="#c29b57" reduced={reduced} /><FloatingPanel3D position={[-1.35, -.8, .25]} reduced={reduced} /><FloatingPanel3D position={[1.32, .7, .1]} color="#80afb7" reduced={reduced} /></group><Environment preset="city" /></Suspense></Canvas></div>
 }
 
-export function SecurityScene() { const reduced = useReducedMotion(); return <div className="security-3d" aria-label="درع أمان ثلاثي الأبعاد" role="img"><Canvas dpr={[1, 1.25]} camera={{ position: [0, 0, 4.2], fov: 40 }} gl={{ antialias: false, powerPreference: 'high-performance', alpha: true }}><ambientLight intensity={1.2}/><pointLight position={[2,2,3]} intensity={8} color="#d9ba78"/><SecurityShield3D reduced={reduced} scale={1.25}/>{!reduced && <Sparkles count={18} scale={3.3} size={1.5} speed={.2} color="#d8bd83"/>}</Canvas></div> }
+export function SecurityScene() { const { lang } = useI18n(); const reduced = useReducedMotion(); return <div className="security-3d" aria-label={lang.security.alt} role="img"><Canvas dpr={[1, 1.25]} camera={{ position: [0, 0, 4.2], fov: 40 }} gl={{ antialias: false, powerPreference: 'high-performance', alpha: true }}><Suspense fallback={null}><ambientLight intensity={1.2}/><pointLight position={[2,2,3]} intensity={8} color="#d9ba78"/><SecurityShield3D reduced={reduced} scale={1.25}/>{!reduced && <Sparkles count={18} scale={3.3} size={1.5} speed={.2} color="#d8bd83"/>}</Suspense></Canvas></div> }
