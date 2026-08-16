@@ -26,7 +26,7 @@ const faqs = [
   ['هل يحل الذكاء الاصطناعي محل المحامي؟', 'لا. المخرجات تساعد في تسريع العمل وتحتاج دائماً إلى مراجعة وحكم مهني من مختص قانوني مؤهل.'],
 ]
 
-function Logo() { return <a className="logo" href="#الرئيسية" aria-label="سَنَد - الصفحة الرئيسية"><span className="logo-image-wrap"><img src="/counsel-arabic-logo.jpg" alt="شعار سَنَد" /></span><span className="brand-name" lang="ar">سَنَد</span></a> }
+function Logo() { return <a className="logo" href="#الرئيسية" aria-label="سَنَد - الصفحة الرئيسية"><span className="logo-image-wrap"><img src="/sanad-logo.jpg" alt="شعار سَنَد" /></span><span className="brand-name" lang="ar">سَنَد</span></a> }
 
 function Button({ children, secondary = false }: { children: React.ReactNode, secondary?: boolean }) {
   return <a href="#ابدأ" className={`button ${secondary ? 'button-secondary' : ''}`}>{children}{!secondary && <ArrowLeft size={17} aria-hidden="true" />}</a>
@@ -112,7 +112,7 @@ function Steps() { return <section className="section steps"><div className="sec
 
 function FAQ() { const [active,setActive] = useState<number | null>(0); return <section className="section faq" id="الأسئلة الشائعة"><div className="faq-title"><span className="eyebrow">الأسئلة الشائعة</span><h2>أسئلة واضحة.<br/>إجابات مباشرة.</h2><p>إذا لم تجد ما تبحث عنه، يسعدنا أن نساعدك.</p><a href="#ابدأ">تواصل معنا <ArrowLeft size={15}/></a></div><div className="faq-list">{faqs.map(([q,a],i) => <article className={active===i?'expanded':''} key={q}><button onClick={() => setActive(active===i?null:i)} aria-expanded={active===i}>{q}<ChevronDown size={19}/></button>{active===i && <p>{a}</p>}</article>)}</div></section> }
 
-function CTA() { return <section className="cta" id="ابدأ"><div className="cta-brand"><span className="cta-brand-mark"><img src="/counsel-arabic-logo.jpg" alt="شعار سَنَد" /></span><span className="cta-brand-name" lang="ar">سَنَد</span></div><h2>ابدأ مستقبل العمل<br/>القانوني اليوم.</h2><p>قلل الأعمال المتكررة، وافهم مستنداتك بشكل أسرع، وامنح فريقك مساحة أكبر للعمل عالي القيمة.</p><Button>ابدأ الآن</Button><small>لا تتخذ المنصة قرارات قانونية نيابةً عنك.</small></section> }
+function CTA() { return <section className="cta" id="ابدأ"><div className="cta-brand"><span className="cta-brand-mark"><img src="/sanad-logo.jpg" alt="شعار سَنَد" /></span><span className="cta-brand-name" lang="ar">سَنَد</span></div><h2>ابدأ مستقبل العمل<br/>القانوني اليوم.</h2><p>قلل الأعمال المتكررة، وافهم مستنداتك بشكل أسرع، وامنح فريقك مساحة أكبر للعمل عالي القيمة.</p><Button>ابدأ الآن</Button><small>لا تتخذ المنصة قرارات قانونية نيابةً عنك.</small></section> }
 
 function Footer() { return <footer><div><Logo/><p>ذكاء قانوني مصمم للمهنيين.</p></div><div className="footer-links"><a href="#المميزات">المميزات</a><a href="#الأمان">الأمان</a><a href="#الأسئلة الشائعة">الأسئلة الشائعة</a><a href="#english" lang="en">English</a></div><small>© ٢٠٢٦ Counsel AI. جميع الحقوق محفوظة.</small></footer> }
 
