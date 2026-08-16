@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.agents/
+*.tsbuildinfo
+vite-dev.log
+vite-dev-error.log
+.DS_Store
