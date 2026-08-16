@@ -48,3 +48,18 @@ footer .logo-image-wrap{width:48px;height:48px}
 /* Full visual supplied for the legal-workspace feature section. */
 .reference-services{padding:0;background:#020c1b}.reference-services:before{display:none}.reference-services-inner{display:block;max-width:1600px;min-height:0}.reference-services-inner>img{display:block;width:100%;max-width:none;margin:0;filter:none;transform:scale(.985);transform-origin:center;transition:opacity .8s ease,transform 1s cubic-bezier(.2,.8,.2,1)}.reference-services:hover .reference-services-inner>img{transform:scale(1.005)}.reference-services.is-visible .reference-services-inner>img{animation:workspace-settle 1.1s cubic-bezier(.2,.8,.2,1) both}@keyframes workspace-settle{from{opacity:0;transform:translateY(28px) scale(.96)}to{opacity:1;transform:translateY(0) scale(.985)}}
 @media(max-width:700px){.reference-services-inner>img{width:100%;min-height:390px;object-fit:cover;object-position:55% center}.reference-services.is-visible .reference-services-inner>img{animation:none;opacity:1;transform:none}}
+
+/* Court-inspired brown palette for the legal technology identity. */
+:root{--navy:#3a2418;--ink:#41291b;--muted:#786554;--ivory:#f5eee5;--paper:#fffaf3;--gold:#b68545;--gold-pale:#ead8bf;--line:#ddcdbb}
+.nav-wrap{background:linear-gradient(180deg,rgba(255,250,243,.84),rgba(245,238,229,.62));border-bottom-color:rgba(184,134,69,.25)}
+.hero.hero-3d:after{background-color:var(--ivory);filter:sepia(.12) saturate(.88)}
+.hero h1,.section-intro h2,.showcase h2,.assistant-copy h2,.faq h2,.security h2,.cta h2,.reference-laptop-copy h2{color:var(--ink)}
+.hero h1 em,.eyebrow,.feature a,.light-link,.faq-title a{color:var(--gold)}
+.trust{background:#3a2418;border-color:#68472c}.trust p,.trust span{color:#f0dfc8}.trust svg{color:#d1a362}
+.reference-services,.security{background:#3a2418}.reference-services:before{background:radial-gradient(circle at 61% 45%,rgba(182,132,67,.2),transparent 23%),linear-gradient(90deg,rgba(58,36,24,.4),transparent 65%)}
+.product-3d-shell{background:#3d281b;border-color:#c2a06f}.product-3d-stage{background:radial-gradient(circle at 50% 50%,#76502d 0,#422918 56%,#25160f 100%)}
+.app-side{background:#432a1a}.ai-avatar{background:#432a1a;color:#e1bb7d}.chat-card,.analysis-card,.product{border-color:#dfcdb9}
+.hero-3d .hero-copy h1 em{color:#a97537}.brand-name{background:linear-gradient(120deg,#41291b 18%,#6e4828 62%,#b68545 100%);-webkit-background-clip:text;background-clip:text}
+.button:not(.button-secondary){background:linear-gradient(135deg,rgba(58,36,24,.94),rgba(111,72,39,.84));border-color:rgba(255,238,210,.3)}
+.button-secondary{color:#4a2e1d;border-color:rgba(111,72,39,.3)}
+.reference-visual img,.reference-services-inner>img,.reference-laptop-art img{filter:sepia(.11) saturate(.9)}
