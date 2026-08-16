@@ -28,8 +28,8 @@ const faqs = [
 
 function Logo() { return <a className="logo" href="#الرئيسية" aria-label="سَنَد - الصفحة الرئيسية"><span className="logo-image-wrap"><img src="/sanad-logo.jpg" alt="شعار سَنَد" /></span><span className="brand-name" lang="ar">سَنَد</span></a> }
 
-function Button({ children, secondary = false }: { children: React.ReactNode, secondary?: boolean }) {
-  return <a href="#ابدأ" className={`button ${secondary ? 'button-secondary' : ''}`}>{children}{!secondary && <ArrowLeft size={17} aria-hidden="true" />}</a>
+function Button({ children, secondary = false, href = '#ابدأ' }: { children: React.ReactNode, secondary?: boolean, href?: string }) {
+  return <a href={href} className={`button ${secondary ? 'button-secondary' : ''}`}>{children}{!secondary && <ArrowLeft size={17} aria-hidden="true" />}</a>
 }
 
 function Nav() {
@@ -37,7 +37,7 @@ function Nav() {
   const links = ['الرئيسية', 'المميزات', 'كيف يعمل', 'حلول المحامين', 'الأمان', 'الأسئلة الشائعة']
   return <header className="nav-wrap"><nav className="nav" aria-label="التنقل الرئيسي"><Logo />
     <div className={`nav-links ${open ? 'open' : ''}`}>{links.map(x => <a key={x} onClick={() => setOpen(false)} href={`#${x}`}>{x}</a>)}</div>
-    <div className="nav-actions"><a className="login" href="#ابدأ">تسجيل الدخول</a><a className="language" href="#english" lang="en">English</a><Button>ابدأ الآن</Button></div>
+    <div className="nav-actions"><a className="login" href="#ابدأ">تسجيل الدخول</a><a className="language" href="#english" lang="en">English</a><Button href="#الاشتراك">ابدأ الآن</Button></div>
     <button className="menu" onClick={() => setOpen(!open)} aria-expanded={open} aria-label={open ? 'إغلاق القائمة' : 'فتح القائمة'}>{open ? <X /> : <Menu />}</button>
   </nav></header>
 }
@@ -62,7 +62,7 @@ function ReferenceHeroVisual() {
   </div>
 }
 
-function Hero() { return <section id="الرئيسية" className="hero hero-3d"><div className="hero-copy"><div className="eyebrow top"><span/> ذكاء قانوني مصمم للعمل الاحترافي</div><h1>حوّل مستنداتك القانونية إلى<br/><em>قرارات أكثر ذكاءً.</em></h1><p>من تحليل العقود واكتشاف المخاطر إلى المساعدة القانونية الذكية، اجعل الذكاء الاصطناعي جزءاً موثوقاً من فريقك القانوني.</p><div className="hero-actions"><Button>ابدأ الآن</Button><Button secondary>استكشف المنصة</Button></div><div className="designed"><ShieldCheck size={17}/> مصمم للمحامين والمهنيين القانونيين</div></div><ReferenceHeroVisual /></section> }
+function Hero() { return <section id="الرئيسية" className="hero hero-3d"><div className="hero-copy"><div className="eyebrow top"><span/> ذكاء قانوني مصمم للعمل الاحترافي</div><h1>حوّل مستنداتك القانونية إلى<br/><em>قرارات أكثر ذكاءً.</em></h1><p>من تحليل العقود واكتشاف المخاطر إلى المساعدة القانونية الذكية، اجعل الذكاء الاصطناعي جزءاً موثوقاً من فريقك القانوني.</p><div className="hero-actions"><Button href="#الاشتراك">ابدأ الآن</Button><Button secondary>استكشف المنصة</Button></div><div className="designed"><ShieldCheck size={17}/> مصمم للمحامين والمهنيين القانونيين</div></div><ReferenceHeroVisual /></section> }
 
 function Trust() { return <section className="trust"><p>مصمم لبيئات العمل القانونية الحديثة</p><div>{[['خصوصية عالية', LockKeyhole], ['تشفير البيانات', ShieldCheck], ['صلاحيات مرنة', Check], ['بنية مؤسسية', Zap]].map(([t, Icon]) => { const I = Icon as typeof LockKeyhole; return <span key={t as string}><I size={16}/>{t as string}</span> })}</div></section> }
 
@@ -112,8 +112,9 @@ function Steps() { return <section className="section steps"><div className="sec
 
 function FAQ() { const [active,setActive] = useState<number | null>(0); return <section className="section faq" id="الأسئلة الشائعة"><div className="faq-title"><span className="eyebrow">الأسئلة الشائعة</span><h2>أسئلة واضحة.<br/>إجابات مباشرة.</h2><p>إذا لم تجد ما تبحث عنه، يسعدنا أن نساعدك.</p><a href="#ابدأ">تواصل معنا <ArrowLeft size={15}/></a></div><div className="faq-list">{faqs.map(([q,a],i) => <article className={active===i?'expanded':''} key={q}><button onClick={() => setActive(active===i?null:i)} aria-expanded={active===i}>{q}<ChevronDown size={19}/></button>{active===i && <p>{a}</p>}</article>)}</div></section> }
 
-function CTA() { return <section className="cta" id="ابدأ"><div className="cta-brand"><span className="cta-brand-mark"><img src="/sanad-logo.jpg" alt="شعار سَنَد" /></span><span className="cta-brand-name" lang="ar">سَنَد</span></div><h2>ابدأ مستقبل العمل<br/>القانوني اليوم.</h2><p>قلل الأعمال المتكررة، وافهم مستنداتك بشكل أسرع، وامنح فريقك مساحة أكبر للعمل عالي القيمة.</p><Button>ابدأ الآن</Button><small>لا تتخذ المنصة قرارات قانونية نيابةً عنك.</small></section> }
+function SubscriptionPlans() { const plans = [['شخصي', 'للأفراد والباحثين عن مساعدة قانونية ذكية', '١٤٩', ['تحليل المستندات', 'المساعد القانوني الذكي', 'ملخصات ومخاطر واضحة']], ['مهني', 'للمحامين والممارسين القانونيين', '٢٩٩', ['كل مزايا الشخصي', 'مراجعة العقود المتقدمة', 'سجل ومراجع لكل قرار']], ['فريق', 'للمكاتب والفرق القانونية', '٥٩٩', ['مساحات عمل متعددة', 'صلاحيات للفريق', 'دعم وأمان مؤسسي']]] as const; return <section className="section subscription-plans" id="الاشتراك"><div className="section-intro centered"><span className="eyebrow">خطط اشتراك مرنة</span><h2>اختر مساحة العمل<br/>المناسبة لك.</h2><p>سواء كنت محاميًا أو تستخدم المنصة لإدارة مستنداتك الشخصية، كل خطة تمنحك أدوات قانونية ذكية باشتراك واضح.</p></div><div className="plan-grid">{plans.map(([name,description,price,items], index) => <article className={`plan-card ${index===1?'featured':''}`} key={name}>{index===1 && <span className="plan-badge">الأكثر اختيارًا للمحامين</span>}<span className="plan-audience">{name}</span><h3>{name === 'مهني' ? 'الخطة المهنية' : `الخطة ${name}`}</h3><p>{description}</p><div className="plan-price"><b>{price}</b><span>جنيه / شهريًا</span></div><ul>{items.map(item => <li key={item}><Check size={16}/>{item}</li>)}</ul><a className="button" href="#ابدأ">ابدأ الاشتراك <ArrowLeft size={17} aria-hidden="true"/></a></article>)}</div></section> }
+function CTA() { return <section className="cta" id="ابدأ"><div className="cta-brand"><span className="cta-brand-mark"><img src="/sanad-logo.jpg" alt="شعار سَنَد" /></span><span className="cta-brand-name" lang="ar">سَنَد</span></div><h2>ابدأ مستقبل العمل<br/>القانوني اليوم.</h2><p>قلل الأعمال المتكررة، وافهم مستنداتك بشكل أسرع، وامنح فريقك مساحة أكبر للعمل عالي القيمة.</p><Button href="#الاشتراك">ابدأ الآن</Button><small>لا تتخذ المنصة قرارات قانونية نيابةً عنك.</small></section> }
 
 function Footer() { return <footer><div><Logo/><p>ذكاء قانوني مصمم للمهنيين.</p></div><div className="footer-links"><a href="#المميزات">المميزات</a><a href="#الأمان">الأمان</a><a href="#الأسئلة الشائعة">الأسئلة الشائعة</a><a href="#english" lang="en">English</a></div><small>© ٢٠٢٦ Counsel AI. جميع الحقوق محفوظة.</small></footer> }
 
-export default function App() { return <><a className="skip" href="#main">انتقل إلى المحتوى</a><Nav/><main id="main"><Hero/><Trust/><ReferenceScrollVisuals/><Workflow/><Problems/><Features/><ProductShowcase/><AnalysisShowcase/><AssistantShowcase/><Security/><Steps/><FAQ/><CTA/></main><Footer/></> }
+export default function App() { return <><a className="skip" href="#main">انتقل إلى المحتوى</a><Nav/><main id="main"><Hero/><Trust/><ReferenceScrollVisuals/><Workflow/><Problems/><Features/><ProductShowcase/><AnalysisShowcase/><AssistantShowcase/><Security/><Steps/><FAQ/><SubscriptionPlans/><CTA/></main><Footer/></> }

@@ -188,6 +188,30 @@ footer .logo-image-wrap{width:48px;height:48px}
 @media(max-width:700px){.assistant-demo-trigger{width:100%;margin-top:20px}.demo-modal-backdrop{padding:14px}.demo-modal{padding:11px;border-radius:20px}.demo-modal-header h3{font-size:17px}.demo-modal-close{width:36px;height:36px}.demo-modal-video{border-radius:13px}}
 @media(prefers-reduced-motion:reduce){.chat-card,.chat-card:before,.suggestions button,.demo-modal-backdrop,.demo-modal,.demo-modal-close{transition:none;animation:none}}
 
+/* Subscription plans for lawyers and everyday users */
+.subscription-plans{position:relative;isolation:isolate;background:radial-gradient(circle at 50% 45%,rgba(182,132,67,.12),transparent 34%),linear-gradient(135deg,#f7efe6,#eee1d2)}
+.subscription-plans:before{content:"";position:absolute;inset:8% 4%;z-index:-1;border:1px solid rgba(182,132,67,.18);border-radius:34px;box-shadow:0 0 70px rgba(182,132,67,.08);pointer-events:none}
+.subscription-plans .section-intro p{max-width:610px}
+.plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px;align-items:stretch}
+.plan-card{position:relative;display:flex;flex-direction:column;padding:30px 26px;border:1px solid rgba(166,119,56,.28);border-radius:22px;background:linear-gradient(135deg,rgba(255,255,255,.62),rgba(234,216,191,.25));box-shadow:inset 0 1px 0 rgba(255,255,255,.86),0 16px 32px rgba(73,43,24,.1);backdrop-filter:blur(18px) saturate(135%);-webkit-backdrop-filter:blur(18px) saturate(135%);transition:transform .32s ease,border-color .32s ease,box-shadow .32s ease}
+.plan-card:hover{transform:translateY(-7px);border-color:rgba(166,119,56,.62);box-shadow:inset 0 1px 0 rgba(255,255,255,.94),0 24px 44px rgba(73,43,24,.17)}
+.plan-card.featured{border-color:rgba(166,119,56,.65);background:linear-gradient(135deg,rgba(255,255,255,.76),rgba(205,166,111,.28));transform:translateY(-8px)}
+.plan-card.featured:hover{transform:translateY(-13px)}
+.plan-badge{position:absolute;top:-13px;right:22px;padding:5px 12px;border:1px solid rgba(166,119,56,.45);border-radius:999px;background:#a56f2e;color:#fff8ed;font-size:11px;font-weight:700;box-shadow:0 8px 16px rgba(73,43,24,.16)}
+.plan-audience{color:#a56f2e;font-size:12px;font-weight:700}
+.plan-card h3{margin:10px 0 5px;color:#4b3020;font-size:24px}
+.plan-card>p{min-height:50px;margin:0;color:#786554;font-size:13px}
+.plan-price{display:flex;align-items:baseline;gap:7px;margin:22px 0 17px;padding-bottom:17px;border-bottom:1px solid rgba(166,119,56,.2);color:#786554}
+.plan-price b{color:#704321;font-size:37px;line-height:1}
+.plan-price span{font-size:11px}
+.plan-card ul{display:grid;gap:11px;list-style:none;padding:0;margin:0 0 26px;color:#614b3c;font-size:13px}
+.plan-card li{display:flex;align-items:center;gap:8px}
+.plan-card li svg{flex:none;color:#a56f2e}
+.plan-card .button{width:100%;margin-top:auto;border-radius:15px;font-size:13px}
+@media(max-width:900px){.plan-grid{grid-template-columns:repeat(2,1fr)}.plan-card.featured{transform:none}.plan-card.featured:hover{transform:translateY(-7px)}}
+@media(max-width:700px){.subscription-plans:before{inset:4% 0}.plan-grid{grid-template-columns:1fr;gap:14px;margin-top:35px}.plan-card,.plan-card.featured{padding:25px 22px}.plan-card>p{min-height:0}.plan-card.featured{order:-1}}
+@media(prefers-reduced-motion:reduce){.plan-card{transition:none}}
+
 /* Product demo: real video inside the court-brown glass shell */
 .product-3d-shell{position:relative;isolation:isolate;border:1px solid rgba(182,132,67,.46);border-radius:24px;background:#3a2418;box-shadow:inset 0 1px 0 rgba(255,255,255,.32),0 24px 52px rgba(73,43,24,.2);overflow:hidden}
 .product-3d-shell:before{content:"";position:absolute;inset:14px;z-index:2;border:1px solid rgba(234,216,191,.3);border-radius:15px;pointer-events:none}
