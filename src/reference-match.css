@@ -123,6 +123,10 @@ footer .logo-image-wrap{width:48px;height:48px}
 .cta{background:radial-gradient(circle at 50% 34%,rgba(224,184,117,.32),transparent 30%),linear-gradient(135deg,#c19c63 0%,#9a7044 100%);box-shadow:inset 0 1px 0 rgba(255,248,230,.38)}
 .cta:before,.cta:after{border-color:rgba(255,244,218,.32)}
 .cta-stamp{border-color:rgba(255,248,230,.62);background:rgba(255,248,230,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.32),0 10px 24px rgba(74,42,20,.14);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.cta-brand{display:flex;flex-direction:column;align-items:center;gap:10px;margin:0 auto 14px;color:#fff4df}
+.cta-brand-mark{width:56px;height:56px;display:grid;place-items:center;border:1px solid rgba(255,248,230,.72);border-radius:16px;background:rgba(255,248,230,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.34),0 12px 25px rgba(74,42,20,.2);overflow:hidden;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.cta-brand-mark img{width:100%;height:100%;display:block;object-fit:cover}
+.cta-brand-name{font-size:15px;line-height:1;font-weight:800;letter-spacing:.08em;color:#fff0cf;text-shadow:0 2px 10px rgba(67,36,17,.2)}
 .cta h2{color:#fff8ed;text-shadow:0 2px 14px rgba(67,36,17,.16)}
 .cta p,.cta small{color:rgba(255,248,237,.86)}
 .cta .button{position:relative;overflow:hidden;color:#fff8ed;border:1px solid rgba(255,239,207,.52);border-radius:16px;background:linear-gradient(135deg,rgba(91,53,31,.7),rgba(58,36,24,.52));box-shadow:inset 0 1px 0 rgba(255,255,255,.36),0 14px 30px rgba(70,38,17,.24);backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);transition:transform .3s cubic-bezier(.2,.8,.2,1),background .3s ease,border-color .3s ease,box-shadow .3s ease}
