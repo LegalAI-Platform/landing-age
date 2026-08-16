@@ -39,8 +39,9 @@
 /* Arabic wordmark used as the primary brand mark. */
 .logo-image-wrap{width:38px;height:38px;display:block;overflow:hidden;border:1px solid rgba(190,156,93,.55);border-radius:50%;background:#151515;box-shadow:0 3px 10px rgba(7,29,48,.14);flex:none}
 .logo-image-wrap img{display:block;width:100%;height:100%;object-fit:cover}
+.brand-name{font-family:'IBM Plex Sans Arabic',Arial,sans-serif;font-size:20px;font-weight:700;line-height:1;color:var(--ink);letter-spacing:0;direction:rtl;unicode-bidi:plaintext;background:linear-gradient(120deg,var(--ink) 18%,#193d52 62%,var(--gold) 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
 footer .logo-image-wrap{width:48px;height:48px}
-@media(max-width:700px){.logo-image-wrap{width:34px;height:34px}footer .logo-image-wrap{width:44px;height:44px}}
+@media(max-width:700px){.logo-image-wrap{width:34px;height:34px}.brand-name{font-size:18px}footer .logo-image-wrap{width:44px;height:44px}}
 @keyframes laptop-float{0%,100%{transform:translateY(0) rotate(-.3deg)}50%{transform:translateY(-8px) rotate(.3deg)}}@media(prefers-reduced-motion:reduce){.reference-laptop-art img{animation:none}}
 @keyframes reference-scan{0%,15%{transform:translateY(-5px);opacity:0}25%{opacity:.78}78%{opacity:.78}92%,100%{transform:translateY(260px);opacity:0}}@keyframes reference-breathe{0%,100%{opacity:.72;transform:scale(.98)}50%{opacity:1;transform:scale(1.04)}}@keyframes reference-pulse{0%{box-shadow:0 0 0 0 rgba(231,199,127,.62)}70%{box-shadow:0 0 0 16px rgba(231,199,127,0)}100%{box-shadow:0 0 0 0 rgba(231,199,127,0)}}@keyframes reference-status{0%,100%{transform:translateY(0);opacity:.86}50%{transform:translateY(-4px);opacity:1}}@media(prefers-reduced-motion:reduce){.reference-visual,.reference-glow,.reference-scan,.reference-pulse,.reference-status{animation:none!important}.reference-scan{opacity:.35}}
 

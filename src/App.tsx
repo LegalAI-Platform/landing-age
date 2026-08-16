@@ -26,7 +26,7 @@ const faqs = [
   ['هل يحل الذكاء الاصطناعي محل المحامي؟', 'لا. المخرجات تساعد في تسريع العمل وتحتاج دائماً إلى مراجعة وحكم مهني من مختص قانوني مؤهل.'],
 ]
 
-function Logo() { return <a className="logo" href="#الرئيسية" aria-label="Counsel AI - الصفحة الرئيسية"><span className="logo-image-wrap"><img src="/counsel-arabic-logo.jpg" alt="شعار Counsel AI" /></span><span>Counsel <b>AI</b></span></a> }
+function Logo() { return <a className="logo" href="#الرئيسية" aria-label="سَنَد - الصفحة الرئيسية"><span className="logo-image-wrap"><img src="/counsel-arabic-logo.jpg" alt="شعار سَنَد" /></span><span className="brand-name" lang="ar">سَنَد</span></a> }
 
 function Button({ children, secondary = false }: { children: React.ReactNode, secondary?: boolean }) {
   return <a href="#ابدأ" className={`button ${secondary ? 'button-secondary' : ''}`}>{children}{!secondary && <ArrowLeft size={17} aria-hidden="true" />}</a>
