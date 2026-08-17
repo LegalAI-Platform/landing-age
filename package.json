@@ -3,7 +3,25 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "scripts": { "dev": "node ./node_modules/vite/bin/vite.js", "build": "node ./node_modules/typescript/bin/tsc -b && node ./node_modules/vite/bin/vite.js build", "preview": "node ./node_modules/vite/bin/vite.js preview" },
-  "dependencies": { "@react-three/drei": "latest", "@react-three/fiber": "latest", "@vitejs/plugin-react": "latest", "vite": "latest", "typescript": "latest", "react": "latest", "react-dom": "latest", "three": "latest", "lucide-react": "latest" },
-  "devDependencies": { "@types/react": "latest", "@types/react-dom": "latest" }
+  "scripts": {
+    "dev": "node ./node_modules/vite/bin/vite.js",
+    "build": "node ./node_modules/typescript/bin/tsc -b && node ./node_modules/vite/bin/vite.js build",
+    "preview": "node ./node_modules/vite/bin/vite.js preview"
+  },
+  "dependencies": {
+    "@react-three/drei": "latest",
+    "@react-three/fiber": "latest",
+    "@vitejs/plugin-react": "latest",
+    "gsap": "^3.15.0",
+    "lucide-react": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "three": "latest",
+    "typescript": "latest",
+    "vite": "latest"
+  },
+  "devDependencies": {
+    "@types/react": "latest",
+    "@types/react-dom": "latest"
+  }
 }

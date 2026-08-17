@@ -1,9 +1,12 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import {
   ArrowLeft, ArrowUpLeft, Bot, Check, ChevronDown, FileSearch, FileText,
-  LockKeyhole, Menu, Search, ShieldCheck, Sparkles, Upload, X, Zap
+  Eye, EyeOff, KeyRound, LockKeyhole, Mail, Menu, Moon, Search, ShieldCheck, Sparkles, Sun, Upload, UserRound, X, Zap
 } from 'lucide-react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useI18n } from './i18n'
+import { useTheme } from './theme'
 const LegalAIHeroScene = lazy(() => import('./components/3d/LegalAIHeroScene').then(module => ({ default: module.LegalAIHeroScene })))
 const LegalProductScene = lazy(() => import('./components/3d/LegalAIHeroScene').then(module => ({ default: module.LegalProductScene })))
 const SecurityScene = lazy(() => import('./components/3d/LegalAIHeroScene').then(module => ({ default: module.SecurityScene })))
@@ -15,14 +18,16 @@ function Button({ children, secondary = false, href = '#ابدأ' }: { children:
   return <a href={href} className={`button ${secondary ? 'button-secondary' : ''}`}>{children}{!secondary && <ArrowLeft size={17} aria-hidden="true" />}</a>
 }
 
-function Nav() {
+function Nav({ onLogin }: { onLogin: () => void }) {
   const { lang, locale, setLocale } = useI18n()
+  const { theme, setTheme } = useTheme()
   const [open, setOpen] = useState(false)
   const links = [['#الرئيسية', lang.nav.home], ['#المميزات', lang.nav.features], ['#كيف يعمل', lang.nav.how], ['#حلول المحامين', lang.nav.lawyers], ['#الأمان', lang.nav.security], ['#الأسئلة الشائعة', lang.nav.faq]]
   const switchLanguage = () => setLocale(locale === 'ar' ? 'en' : 'ar')
+  const switchTheme = () => setTheme(theme === 'light' ? 'dark' : 'light')
   return <header className="nav-wrap"><nav className="nav" aria-label={lang.nav.aria}><Logo />
     <div className={`nav-links ${open ? 'open' : ''}`}>{links.map(([href,label]) => <a key={label} onClick={() => setOpen(false)} href={href}>{label}</a>)}</div>
-    <div className="nav-actions"><a className="login" href="#ابدأ">{lang.nav.login}</a><button className="language" type="button" onClick={switchLanguage} aria-label={locale === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'}>{lang.nav.language}</button><Button href="#الاشتراك">{lang.nav.start}</Button></div>
+    <div className="nav-actions"><button className="login" type="button" onClick={onLogin}>{lang.nav.login}</button><button className="language" type="button" onClick={switchLanguage} aria-label={locale === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'}>{lang.nav.language}</button><button className="theme-toggle" type="button" onClick={switchTheme} aria-pressed={theme === 'dark'} aria-label={theme === 'dark' ? lang.theme.switchToLight : lang.theme.switchToDark} title={theme === 'dark' ? lang.theme.switchToLight : lang.theme.switchToDark}><Sun size={15} aria-hidden="true"/><Moon size={15} aria-hidden="true"/><span>{theme === 'dark' ? lang.theme.dark : lang.theme.light}</span></button><Button href="#الاشتراك">{lang.nav.start}</Button></div>
     <button className="menu" onClick={() => setOpen(!open)} aria-expanded={open} aria-label={open ? lang.nav.menuClose : lang.nav.menuOpen}>{open ? <X /> : <Menu />}</button>
   </nav></header>
 }
@@ -68,14 +73,13 @@ function RevealSection({ children, className, id }: { children: React.ReactNode,
 function ReferenceScrollVisuals() {
   const { lang } = useI18n()
   return <>
-    <RevealSection className="reference-services" id="المميزات"><div className="reference-services-inner"><img src="/legal-workspace-section-clean.png" alt={lang.reference.alt} /><a className="reference-image-cta" href="#ابدأ" aria-label={lang.reference.cta}><span>{lang.reference.cta}</span><ArrowLeft size={17} aria-hidden="true" /></a></div></RevealSection>
-    <RevealSection className="reference-laptop"><div className="reference-laptop-copy"><span className="eyebrow">{lang.reference.laptopEyebrow}</span><h2>{lang.reference.laptopTitle}<br/>{lang.reference.laptopTitle2}</h2><p>{lang.reference.laptopText}</p><a className="button" href="#ابدأ">{lang.reference.laptopCta} <ArrowLeft size={17} aria-hidden="true" /></a></div><div className="reference-laptop-art"><img src="/smart-legal-laptop-cutout-new.png" alt={lang.reference.laptopAlt} /></div></RevealSection>
+    <RevealSection className="reference-services" id="المميزات"><div className="reference-services-inner"><div className="reference-services-copy"><span className="eyebrow">{lang.reference.laptopEyebrow}</span><h2>{lang.reference.laptopTitle}<br/>{lang.reference.laptopTitle2}</h2><p>{lang.reference.laptopText}</p><a className="button reference-services-cta" href="#ابدأ">{lang.reference.cta}<ArrowLeft size={17} aria-hidden="true" /></a></div><div className="reference-services-art"><img src="/smart-legal-laptop-cutout-new.png" alt={lang.reference.alt} /></div></div></RevealSection>
   </>
 }
 
 function Workflow() {
   const { lang } = useI18n(); const icons = [Upload, FileSearch, ShieldCheck, Bot]
-  return <section className="workflow" id="حلول المحامين"><div className="workflow-intro"><span className="eyebrow">{lang.workflow.eyebrow}</span><h2>{lang.workflow.title}<br/><em>{lang.workflow.titleAccent}</em></h2><p>{lang.workflow.text}</p><div className="workflow-orbit"><div className="workflow-paper"><FileText size={28}/><span>{lang.workflow.paper}</span><small>{lang.workflow.paperStatus}</small></div><div className="workflow-ring"/><div className="workflow-dot"/></div></div><div className="workflow-steps">{lang.workflow.stages.map(([title,text], index) => { const Icon = icons[index]; const number = `0${index + 1}`; return <article key={number} className="workflow-step"><div className="workflow-step-top"><span>{number}</span><Icon size={20}/></div><h3>{title}</h3><p>{text}</p><i/></article>})}</div></section>
+  return <section className="workflow" id="حلول المحامين"><div className="workflow-intro"><span className="eyebrow">{lang.workflow.eyebrow}</span><h2>{lang.workflow.title}<br/><em>{lang.workflow.titleAccent}</em></h2><p>{lang.workflow.text}</p><div className="workflow-orbit"><div className="workflow-document-3d"><img src="/agreement-contract-3d.jpg" alt={lang.workflow.paper}/></div><span className="workflow-document-label">{lang.workflow.paper}</span><div className="workflow-ring"/><div className="workflow-dot"/></div></div><div className="workflow-steps">{lang.workflow.stages.map(([title,text], index) => { const Icon = icons[index]; const number = `0${index + 1}`; return <article key={number} className="workflow-step"><div className="workflow-step-top"><span>{number}</span><Icon size={20}/></div><h3>{title}</h3><p>{text}</p><i/></article>})}</div></section>
 }
 
 function Problems() { const { lang } = useI18n(); return <section className="section problem" id="كيف يعمل"><div className="section-intro"><span className="eyebrow">{lang.problems.eyebrow}</span><h2>{lang.problems.title}<br/>{lang.problems.title2}</h2><p>{lang.problems.text}</p></div><div className="problem-grid">{lang.problems.items.map((item,i) => <div className="problem-card" key={item}><span>0{i+1}</span><p>{item}</p><div className="line"/></div>)}</div></section> }
@@ -95,8 +99,129 @@ function Steps() { const { lang } = useI18n(); return <section className="sectio
 function FAQ() { const { lang } = useI18n(); const [active,setActive] = useState<number | null>(0); return <section className="section faq" id="الأسئلة الشائعة"><div className="faq-title"><span className="eyebrow">{lang.faq.eyebrow}</span><h2>{lang.faq.title}<br/>{lang.faq.title2}</h2><p>{lang.faq.text}</p><a href="#ابدأ">{lang.faq.contact} <ArrowLeft size={15}/></a></div><div className="faq-list">{lang.faq.items.map(([question,answer],i) => <article className={active===i?'expanded':''} key={question}><button onClick={() => setActive(active===i?null:i)} aria-expanded={active===i}>{question}<ChevronDown size={19}/></button>{active===i && <p>{answer}</p>}</article>)}</div></section> }
 
 function SubscriptionPlans({ open, onClose }: { open: boolean, onClose: () => void }) { const { lang, locale } = useI18n(); if (!open) return null; const planTitles = locale === 'ar' ? ['الخطة الشخصية', 'الخطة المهنية', 'خطة الفريق'] : ['Personal plan', 'Professional plan', 'Team plan']; return <div className="subscription-modal-backdrop" role="presentation" onClick={onClose}><section className="subscription-plans subscription-modal" id="الاشتراك" role="dialog" aria-modal="true" aria-labelledby="subscription-title" onClick={event => event.stopPropagation()}><button className="subscription-modal-close" type="button" aria-label={lang.plans.close} onClick={onClose}><X size={19}/></button><div className="section-intro centered"><span className="eyebrow">{lang.plans.eyebrow}</span><h2 id="subscription-title">{lang.plans.title}<br/>{lang.plans.title2}</h2><p>{lang.plans.text}</p></div><div className="plan-grid">{lang.plans.plans.map(([name,description,price,items], index) => <article className={`plan-card ${index===1?'featured':''}`} key={name}>{index===1 && <span className="plan-badge">{lang.plans.badge}</span>}<span className="plan-audience">{name}</span><h3>{planTitles[index]}</h3><p>{description}</p><div className="plan-price"><b>{price}</b><span>{lang.plans.monthly}</span></div><ul>{items.map(item => <li key={item}><Check size={16}/>{item}</li>)}</ul><a className="button" href="#ابدأ">{lang.plans.subscribe} <ArrowLeft size={17} aria-hidden="true"/></a></article>)}</div></section></div> }
-function CTA() { const { lang } = useI18n(); return <section className="cta" id="ابدأ"><div className="cta-brand"><span className="cta-brand-mark"><img src="/sanad-logo.jpg" alt={lang.brand.logoAlt} /></span><span className="cta-brand-name" lang="ar">{lang.brand.name}</span></div><h2>{lang.cta.title}<br/>{lang.cta.title2}</h2><p>{lang.cta.text}</p><Button href="#الاشتراك">{lang.nav.start}</Button><small>{lang.cta.disclaimer}</small></section> }
+
+type AuthView = 'login' | 'register' | 'forgot' | 'reset' | 'success'
+
+function LoginFlow({ open, onClose }: { open: boolean, onClose: () => void }) {
+  const { lang } = useI18n()
+  const [view, setView] = useState<AuthView>('login')
+  const [email, setEmail] = useState('')
+  const [fullName, setFullName] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [resetToken, setResetToken] = useState('')
+  const [error, setError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const isPasswordView = view === 'login' || view === 'register' || view === 'reset'
+  const close = () => { setView('login'); setError(''); setPassword(''); setConfirmPassword(''); onClose() }
+  const changeView = (next: AuthView) => { setError(''); setView(next) }
+
+  useEffect(() => {
+    if (!open) return
+    const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') close() }
+    window.addEventListener('keydown', escape)
+    return () => window.removeEventListener('keydown', escape)
+  }, [open])
+
+  if (!open) return null
+  const validateEmail = () => /^\S+@\S+\.\S+$/.test(email)
+  const submit = async () => {
+    if (!validateEmail()) return setError(lang.auth.invalidEmail)
+    if (view === 'register' && !fullName.trim()) return setError(lang.auth.fullName)
+    if (isPasswordView && password.length < 8) return setError(lang.auth.passwordShort)
+    if ((view === 'register' || view === 'reset') && password !== confirmPassword) return setError(lang.auth.passwordMismatch)
+    setSubmitting(true); setError('')
+    const endpoint = view === 'login' ? 'login' : view === 'register' ? 'register' : view === 'forgot' ? 'forgot-password' : 'reset-password'
+    const payload = view === 'login' ? { email, password } : view === 'register' ? { displayName: fullName, email, password } : view === 'forgot' ? { email } : { email, token: resetToken, password }
+    try {
+      const response = await fetch(`http://localhost:5103/api/v1/auth/${endpoint}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      const data = await response.json().catch(() => null)
+      if (!response.ok) {
+        const validationMessage = data?.errors ? Object.values(data.errors).flat().find((message): message is string => typeof message === 'string') : undefined
+        const message = data?.error === 'invalid_credentials' ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة.'
+          : data?.error === 'email_already_registered' ? 'هذا البريد مسجل بالفعل. سجّل الدخول أو استخدم بريدًا آخر.'
+          : data?.error === 'invalid_or_expired_reset_token' ? 'رمز الاستعادة غير صالح أو انتهت صلاحيته. اطلب رمزًا جديدًا.'
+          : validationMessage ?? data?.title ?? 'تعذر إتمام الطلب. تحقق من البيانات وحاول مرة أخرى.'
+        throw new Error(message)
+      }
+      if (view === 'forgot') { setResetToken(data?.developmentToken ?? ''); setView('reset'); return }
+      if (view === 'reset') { setView('login'); setError('تم تغيير كلمة المرور. يمكنك تسجيل الدخول الآن.'); return }
+      sessionStorage.setItem('sanad-access-token', data.accessToken); sessionStorage.setItem('sanad-user', JSON.stringify(data)); setView('success')
+    } catch (requestError) { setError(requestError instanceof TypeError ? 'تعذر الاتصال بالخدمة. تأكد أن الـBackend يعمل ثم حاول مرة أخرى.' : requestError instanceof Error ? requestError.message : 'تعذر الاتصال بالخدمة.') }
+    finally { setSubmitting(false) }
+  }
+  const title = view === 'register' ? lang.auth.createAccount : view === 'forgot' ? lang.auth.resetTitle : view === 'reset' ? lang.auth.resetPassword : view === 'success' ? lang.auth.successTitle : lang.auth.title
+  const subtitle = view === 'forgot' ? lang.auth.resetText : view === 'reset' ? lang.auth.resetPasswordText : view === 'success' ? lang.auth.successText : lang.auth.subtitle
+  const submitLabel = view === 'register' ? lang.auth.createAccount : view === 'forgot' ? lang.auth.sendLink : view === 'reset' ? lang.auth.savePassword : lang.auth.login
+
+  return <div className="auth-backdrop" role="presentation" onMouseDown={close}><section className="auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-title" onMouseDown={event => event.stopPropagation()}><button className="auth-close" type="button" aria-label={lang.auth.close} onClick={close}><X size={19}/></button>{view === 'success' ? <div className="auth-success"><span className="auth-success-icon"><Check size={28}/></span><h2 id="auth-title">{title}</h2><p>{subtitle}</p><button className="button auth-submit" type="button" onClick={close}>{lang.auth.continue}<ArrowLeft size={17} aria-hidden="true"/></button></div> : <><div className="auth-heading"><span className="eyebrow"><KeyRound size={14}/>{view === 'register' ? lang.auth.register : lang.nav.login}</span><h2 id="auth-title">{title}</h2><p>{subtitle}</p></div><form className="auth-form" onSubmit={event => { event.preventDefault(); void submit() }}>{view === 'register' && <label className="auth-field"><span>{lang.auth.fullName}</span><div><UserRound size={17}/><input autoComplete="name" value={fullName} onChange={event => setFullName(event.target.value)} required /></div></label>}<label className="auth-field"><span>{lang.auth.email}</span><div><Mail size={17}/><input type="email" autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} required /></div></label>{view === 'reset' && <label className="auth-field"><span>{lang.auth.resetCode}</span><div><KeyRound size={17}/><input value={resetToken} onChange={event => setResetToken(event.target.value)} required /></div></label>}{isPasswordView && <label className="auth-field"><span>{lang.auth.password}</span><div><KeyRound size={17}/><input type={showPassword ? 'text' : 'password'} autoComplete={view === 'login' ? 'current-password' : 'new-password'} value={password} onChange={event => setPassword(event.target.value)} required /><button className="auth-password-toggle" type="button" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff size={17}/> : <Eye size={17}/>}</button></div></label>}{(view === 'register' || view === 'reset') && <label className="auth-field"><span>{lang.auth.confirmPassword}</span><div><KeyRound size={17}/><input type={showPassword ? 'text' : 'password'} autoComplete="new-password" value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} required /></div></label>}{error && <p className="auth-error" role="alert">{error}</p>}<button className="button auth-submit" type="submit" disabled={submitting}>{submitting ? 'جارٍ المعالجة…' : submitLabel}<ArrowLeft size={17} aria-hidden="true"/></button></form>{view === 'login' && <button className="auth-text-button" type="button" onClick={() => changeView('forgot')}>{lang.auth.forgot}</button>}{view === 'forgot' || view === 'reset' ? <button className="auth-text-button" type="button" onClick={() => changeView('login')}>{lang.auth.back}</button> : view !== 'login' && <p className="auth-switch">{lang.auth.haveAccount} <button type="button" onClick={() => changeView('login')}>{lang.auth.login}</button></p>}{view === 'login' && <p className="auth-switch">{lang.auth.noAccount} <button type="button" onClick={() => changeView('register')}>{lang.auth.register}</button></p>}<p className="auth-notice">{lang.auth.demoNotice}</p></>}</section></div>
+}
+function CTA() { const { lang, locale } = useI18n(); return <section className="cta" id="ابدأ"><div className="cta-brand"><span className="cta-brand-mark"><img src="/sanad-logo.jpg" alt={lang.brand.logoAlt} /></span><span className="cta-brand-name" lang={locale}>{lang.brand.name}</span></div><h2>{lang.cta.title}<br/>{lang.cta.title2}</h2><p>{lang.cta.text}</p><Button href="#الاشتراك">{lang.nav.start}</Button><small>{lang.cta.disclaimer}</small></section> }
 
 function Footer() { const { lang, locale, setLocale } = useI18n(); return <footer><div><Logo/><p>{lang.footer.tagline}</p></div><div className="footer-links">{lang.footer.links.map((label, index) => <a key={label} href={['#المميزات','#الأمان','#الأسئلة الشائعة'][index]}>{label}</a>)}<button className="footer-language" type="button" onClick={() => setLocale(locale === 'ar' ? 'en' : 'ar')}>{lang.nav.language}</button></div><small>{lang.footer.copyright}</small></footer> }
 
-export default function App() { const { lang } = useI18n(); const [plansOpen, setPlansOpen] = useState(false); useEffect(() => { const syncPlans = () => { const hash = decodeURIComponent(window.location.hash.slice(1)); setPlansOpen(hash === 'الاشتراك') }; syncPlans(); window.addEventListener('hashchange', syncPlans); return () => window.removeEventListener('hashchange', syncPlans) }, []); useEffect(() => { document.body.style.overflow = plansOpen ? 'hidden' : ''; return () => { document.body.style.overflow = '' } }, [plansOpen]); const closePlans = () => { setPlansOpen(false); if (decodeURIComponent(window.location.hash.slice(1)) === 'الاشتراك') window.history.pushState({}, '', '#الرئيسية') }; return <><a className="skip" href="#main">{lang.a11y.skip}</a><Nav/><main id="main"><Hero/><Trust/><ReferenceScrollVisuals/><Workflow/><Problems/><Features/><ProductShowcase/><AnalysisShowcase/><AssistantShowcase/><Security/><Steps/><FAQ/><CTA/></main><SubscriptionPlans open={plansOpen} onClose={closePlans}/><Footer/></> }
+export default function App() {
+  const { lang } = useI18n()
+  const [plansOpen, setPlansOpen] = useState(false)
+  const [authOpen, setAuthOpen] = useState(false)
+  const motionScope = useRef<HTMLElement | null>(null)
+
+  useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger)
+    const scope = motionScope.current
+    if (!scope || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    let mediaContext: gsap.MatchMedia | undefined
+    const context = gsap.context(() => {
+      const reveal = (target: string, trigger?: string, options: gsap.TweenVars = {}) => {
+        const vars = { autoAlpha: 0, y: 20, duration: 0.55, ease: 'power2.out', stagger: 0.05, ...options }
+        if (trigger) return gsap.from(target, { ...vars, scrollTrigger: { trigger, start: 'top 84%', once: true } })
+        return gsap.utils.toArray<HTMLElement>(target).map((element) => gsap.from(element, { ...vars, stagger: 0, scrollTrigger: { trigger: element, start: 'top 84%', once: true } }))
+      }
+
+      gsap.from('.hero-copy > *', { autoAlpha: 0, y: 22, duration: 0.65, stagger: 0.08, ease: 'power2.out', delay: 0.1 })
+      gsap.from('.reference-visual', { autoAlpha: 0, x: 30, scale: 0.98, duration: 0.8, ease: 'power2.out', delay: 0.2 })
+      gsap.to('.reference-services-art', { y: -16, rotate: -0.7, duration: 3.2, ease: 'sine.inOut', repeat: -1, yoyo: true })
+
+      reveal('.reference-services-inner', '.reference-services')
+      reveal('.reference-laptop-copy', '.reference-laptop')
+      reveal('.workflow-intro', '.workflow')
+      reveal('.section-intro, .product-showcopy, .showcase-copy, .assistant-copy, .faq-title, .security > div:first-child')
+      reveal('.feature', '.features')
+      reveal('.workflow-step', '.workflow')
+      reveal('.problem-card', '.problem')
+      reveal('.analysis-card', '.showcase')
+      reveal('.chat-card', '.assistant-show')
+      reveal('.security-grid article', '.security')
+      reveal('.step', '.steps')
+      reveal('.faq-list article', '.faq')
+      reveal('.cta > *', '.cta', { y: 14, duration: 0.45 })
+
+      mediaContext = gsap.matchMedia()
+      mediaContext.add('(min-width: 701px)', () => {
+        gsap.to('.reference-visual img', {
+          yPercent: -6,
+          ease: 'none',
+          scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.7 }
+        })
+        gsap.to('.workflow-orbit', {
+          yPercent: -10,
+          rotate: 4,
+          ease: 'none',
+          scrollTrigger: { trigger: '.workflow', start: 'top bottom', end: 'bottom top', scrub: 0.7 }
+        })
+      })
+    }, scope)
+
+    return () => {
+      mediaContext?.revert()
+      context.revert()
+    }
+  }, [])
+
+  useEffect(() => { const syncPlans = () => { const hash = decodeURIComponent(window.location.hash.slice(1)); setPlansOpen(hash === 'الاشتراك') }; syncPlans(); window.addEventListener('hashchange', syncPlans); return () => window.removeEventListener('hashchange', syncPlans) }, [])
+  useEffect(() => { document.body.style.overflow = plansOpen || authOpen ? 'hidden' : ''; return () => { document.body.style.overflow = '' } }, [plansOpen, authOpen])
+  const closePlans = () => { setPlansOpen(false); if (decodeURIComponent(window.location.hash.slice(1)) === 'الاشتراك') window.history.pushState({}, '', '#الرئيسية') }
+  return <><a className="skip" href="#main">{lang.a11y.skip}</a><Nav onLogin={() => setAuthOpen(true)}/><main id="main" ref={motionScope}><Hero/><Trust/><ReferenceScrollVisuals/><Workflow/><Problems/><Features/><ProductShowcase/><AnalysisShowcase/><AssistantShowcase/><Security/><Steps/><FAQ/><CTA/></main><SubscriptionPlans open={plansOpen} onClose={closePlans}/><LoginFlow open={authOpen} onClose={() => setAuthOpen(false)}/><Footer/></>
+}
