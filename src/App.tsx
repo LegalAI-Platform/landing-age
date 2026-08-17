@@ -1,15 +1,18 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import {
   ArrowLeft, ArrowUpLeft, Bot, Check, ChevronDown, FileSearch, FileText,
-  Eye, EyeOff, KeyRound, LockKeyhole, Mail, Menu, Moon, Search, ShieldCheck, Sparkles, Sun, Upload, UserRound, X, Zap
+  Eye, EyeOff, KeyRound, LockKeyhole, Mail, Menu, Moon, Search, ShieldCheck, Sparkles, Sun, Upload, UserRound, X, Zap,
+  Plus, Send, Paperclip, Copy, ThumbsUp, ThumbsDown, RotateCcw
 } from 'lucide-react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useI18n } from './i18n'
 import { useTheme } from './theme'
+import { GavelChatTrigger } from './components/GavelChatTrigger'
 const LegalAIHeroScene = lazy(() => import('./components/3d/LegalAIHeroScene').then(module => ({ default: module.LegalAIHeroScene })))
 const LegalProductScene = lazy(() => import('./components/3d/LegalAIHeroScene').then(module => ({ default: module.LegalProductScene })))
 const SecurityScene = lazy(() => import('./components/3d/LegalAIHeroScene').then(module => ({ default: module.SecurityScene })))
+const AIAssistantImage = lazy(() => import('./components/AIAssistantImage').then(module => ({ default: module.AIAssistantImage })))
 function SceneLoader({ children }: { children: React.ReactNode }) { return <Suspense fallback={<div className="scene-skeleton" aria-hidden="true" />}>{children}</Suspense> }
 
 function Logo() { const { lang, locale } = useI18n(); return <a className="logo" href="#الرئيسية" aria-label={lang.brand.homeAria}><span className="logo-image-wrap"><img src="/sanad-logo.jpg" alt={lang.brand.logoAlt} /></span><span className="brand-name" lang={locale}>{lang.brand.name}</span></a> }
@@ -98,7 +101,26 @@ function Steps() { const { lang } = useI18n(); return <section className="sectio
 
 function FAQ() { const { lang } = useI18n(); const [active,setActive] = useState<number | null>(0); return <section className="section faq" id="الأسئلة الشائعة"><div className="faq-title"><span className="eyebrow">{lang.faq.eyebrow}</span><h2>{lang.faq.title}<br/>{lang.faq.title2}</h2><p>{lang.faq.text}</p><a href="#ابدأ">{lang.faq.contact} <ArrowLeft size={15}/></a></div><div className="faq-list">{lang.faq.items.map(([question,answer],i) => <article className={active===i?'expanded':''} key={question}><button onClick={() => setActive(active===i?null:i)} aria-expanded={active===i}>{question}<ChevronDown size={19}/></button>{active===i && <p>{answer}</p>}</article>)}</div></section> }
 
-function SubscriptionPlans({ open, onClose }: { open: boolean, onClose: () => void }) { const { lang, locale } = useI18n(); if (!open) return null; const planTitles = locale === 'ar' ? ['الخطة الشخصية', 'الخطة المهنية', 'خطة الفريق'] : ['Personal plan', 'Professional plan', 'Team plan']; return <div className="subscription-modal-backdrop" role="presentation" onClick={onClose}><section className="subscription-plans subscription-modal" id="الاشتراك" role="dialog" aria-modal="true" aria-labelledby="subscription-title" onClick={event => event.stopPropagation()}><button className="subscription-modal-close" type="button" aria-label={lang.plans.close} onClick={onClose}><X size={19}/></button><div className="section-intro centered"><span className="eyebrow">{lang.plans.eyebrow}</span><h2 id="subscription-title">{lang.plans.title}<br/>{lang.plans.title2}</h2><p>{lang.plans.text}</p></div><div className="plan-grid">{lang.plans.plans.map(([name,description,price,items], index) => <article className={`plan-card ${index===1?'featured':''}`} key={name}>{index===1 && <span className="plan-badge">{lang.plans.badge}</span>}<span className="plan-audience">{name}</span><h3>{planTitles[index]}</h3><p>{description}</p><div className="plan-price"><b>{price}</b><span>{lang.plans.monthly}</span></div><ul>{items.map(item => <li key={item}><Check size={16}/>{item}</li>)}</ul><a className="button" href="#ابدأ">{lang.plans.subscribe} <ArrowLeft size={17} aria-hidden="true"/></a></article>)}</div></section></div> }
+function SubscriptionPlans({ open, onClose, onStartTrial }: { open: boolean, onClose: () => void, onStartTrial: () => void }) { const { lang, locale } = useI18n(); if (!open) return null; const planTitles = locale === 'ar' ? ['التجربة المجانية', 'الخطة الشخصية', 'الخطة المهنية', 'خطة الفريق'] : ['Free trial', 'Personal plan', 'Professional plan', 'Team plan']; return <div className="subscription-modal-backdrop" role="presentation" onClick={onClose}><section className="subscription-plans subscription-modal" id="الاشتراك" role="dialog" aria-modal="true" aria-labelledby="subscription-title" onClick={event => event.stopPropagation()}><button className="subscription-modal-close" type="button" aria-label={lang.plans.close} onClick={onClose}><X size={19}/></button><div className="section-intro centered"><span className="eyebrow">{lang.plans.eyebrow}</span><h2 id="subscription-title">{lang.plans.title}<br/>{lang.plans.title2}</h2><p>{lang.plans.text}</p></div><div className="plan-grid">{lang.plans.plans.map(([name,description,price,items], index) => <article className={`plan-card ${index===2?'featured':''} ${index===0?'trial':''}`} key={name}>{index===2 && <span className="plan-badge">{lang.plans.badge}</span>}{index===0 && <span className="plan-badge trial-badge">{lang.plans.trialBadge}</span>}<span className="plan-audience">{name}</span><h3>{planTitles[index]}</h3><p>{description}</p><div className="plan-price"><b>{price}</b><span>{index===0 ? lang.plans.trialPrice : lang.plans.monthly}</span></div>{index===0 && <div className="trial-limit"><b>{lang.plans.trialLimit}</b><small>{lang.plans.trialNotice}</small></div>}<ul>{items.map(item => <li key={item}><Check size={16}/>{item}</li>)}</ul>{index===0 ? <button className="button" type="button" onClick={onStartTrial}>{lang.plans.trialCta} <ArrowLeft size={17} aria-hidden="true"/></button> : <a className="button" href="#ابدأ">{lang.plans.subscribe} <ArrowLeft size={17} aria-hidden="true"/></a>}</article>)}</div></section></div> }
+
+function AIWorkspace({ open, onClose }: { open: boolean, onClose: () => void }) {
+  const [message, setMessage] = useState('')
+  const [sent, setSent] = useState(false)
+  const onlineDotRef = useRef<HTMLSpanElement>(null)
+  useEffect(() => {
+    if (!open || !onlineDotRef.current || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const context = gsap.context(() => {
+      gsap.to(onlineDotRef.current, { scale: 1.22, boxShadow: '0 0 0 6px rgba(78,151,122,.2)', duration: .9, ease: 'sine.inOut', repeat: -1, yoyo: true })
+    }, onlineDotRef)
+    return () => context.revert()
+  }, [open])
+  if (!open) return null
+  const submit = () => { if (!message.trim()) return; setSent(true); setMessage('') }
+  return <div className="ai-workspace-backdrop" role="presentation"><div className="ai-workspace" dir="rtl" role="dialog" aria-modal="true" aria-labelledby="ai-workspace-title">
+    <aside className="ai-sidebar"><div className="ai-sidebar-top"><div><span className="eyebrow">المساعد القانوني</span><h2>محادثاتك</h2></div></div><button className="ai-new-chat" type="button" onClick={() => setSent(false)}><Plus size={17}/> محادثة جديدة</button><label className="ai-search"><Search size={16}/><input placeholder="ابحث في المحادثات" aria-label="ابحث في المحادثات"/></label><span className="ai-group-label">اليوم</span><button className="ai-conversation active" type="button">شروط رفع الدعوى المدنية؟<small>الآن</small></button><span className="ai-group-label">أمس</span><button className="ai-conversation" type="button">إجراءات الاستئناف<small>أمس</small></button><button className="ai-conversation" type="button">شروط عقد البيع<small>أمس</small></button></aside>
+    <section className="ai-chat-panel"><header className="ai-chat-header"><div><span ref={onlineDotRef} className="ai-online-dot" aria-hidden="true"/> <strong id="ai-workspace-title">المساعد القانوني الذكي</strong><small>معلومات عامة مدعومة بالمصادر</small></div><button className="ai-icon-button" type="button" aria-label="إغلاق المساعد" onClick={onClose}><X size={19}/></button></header><div className="ai-message-scroll">{!sent ? <div className="ai-empty"><Suspense fallback={<div className="ai-empty-icon"><Bot size={28}/></div>}><AIAssistantImage open={open}/></Suspense><h3>كيف يمكنني مساعدتك؟</h3><p>اكتب سؤالك القانوني وسأساعدك في فهمه مع توضيح المصادر ذات الصلة.</p><div className="ai-suggestion-grid">{['ما هي شروط رفع الدعوى المدنية؟','ما الفرق بين الدعوى والطلب؟','ما هي إجراءات الاستئناف؟','ما هي شروط صحة عقد البيع؟'].map(item => <button key={item} type="button" onClick={() => setMessage(item)}>{item}<ArrowLeft size={14}/></button>)}</div></div> : <div className="ai-conversation-view"><div className="ai-user-bubble">{sent ? 'ما هي شروط رفع الدعوى المدنية؟' : message}<small>الآن</small></div><div className="ai-answer"><div className="ai-answer-avatar"><Bot size={17}/></div><div><span className="ai-answer-label">الإجابة المختصرة</span><p>تختلف شروط قبول الدعوى بحسب نوعها، ولكن توجد مجموعة من الشروط العامة التي ينبغي توافرها. هذه إجابة توضيحية تجريبية، ويُنصح بمراجعة محامٍ مختص قبل اتخاذ أي إجراء.</p><div className="ai-sources"><strong>المصادر المقترحة</strong><button type="button"><FileText size={14}/> قانون المرافعات المدنية والتجارية <ArrowLeft size={13}/></button><button type="button"><FileText size={14}/> المادة 63 <ArrowLeft size={13}/></button></div><div className="ai-answer-actions"><button type="button" aria-label="نسخ الإجابة"><Copy size={15}/></button><button type="button" aria-label="إجابة مفيدة"><ThumbsUp size={15}/></button><button type="button" aria-label="إجابة غير مفيدة"><ThumbsDown size={15}/></button><button type="button" aria-label="إعادة إنشاء الإجابة"><RotateCcw size={15}/></button></div></div></div></div>}</div><div className="ai-composer-wrap"><div className="ai-composer"><textarea value={message} onChange={event => setMessage(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); submit() } }} placeholder="اكتب سؤالك القانوني هنا..." aria-label="اكتب سؤالك القانوني هنا..." rows={1}/><button className="ai-attach" type="button" aria-label="إرفاق مستند"><Paperclip size={18}/></button><button className="ai-send" type="button" aria-label="إرسال السؤال" onClick={submit} disabled={!message.trim()}><Send size={17}/></button></div><small>المساعد الذكي يقدم معلومات عامة ولا يغني عن استشارة محامٍ مختص.</small></div></section>
+  </div></div>
+}
 
 type AuthView = 'login' | 'register' | 'forgot' | 'reset' | 'success'
 
@@ -164,6 +186,7 @@ function Footer() { const { lang, locale, setLocale } = useI18n(); return <foote
 export default function App() {
   const { lang } = useI18n()
   const [plansOpen, setPlansOpen] = useState(false)
+  const [aiOpen, setAiOpen] = useState(false)
   const [authOpen, setAuthOpen] = useState(false)
   const motionScope = useRef<HTMLElement | null>(null)
 
@@ -221,7 +244,7 @@ export default function App() {
   }, [])
 
   useEffect(() => { const syncPlans = () => { const hash = decodeURIComponent(window.location.hash.slice(1)); setPlansOpen(hash === 'الاشتراك') }; syncPlans(); window.addEventListener('hashchange', syncPlans); return () => window.removeEventListener('hashchange', syncPlans) }, [])
-  useEffect(() => { document.body.style.overflow = plansOpen || authOpen ? 'hidden' : ''; return () => { document.body.style.overflow = '' } }, [plansOpen, authOpen])
+  useEffect(() => { document.body.style.overflow = plansOpen || authOpen || aiOpen ? 'hidden' : ''; return () => { document.body.style.overflow = '' } }, [plansOpen, authOpen, aiOpen])
   const closePlans = () => { setPlansOpen(false); if (decodeURIComponent(window.location.hash.slice(1)) === 'الاشتراك') window.history.pushState({}, '', '#الرئيسية') }
-  return <><a className="skip" href="#main">{lang.a11y.skip}</a><Nav onLogin={() => setAuthOpen(true)}/><main id="main" ref={motionScope}><Hero/><Trust/><ReferenceScrollVisuals/><Workflow/><Problems/><Features/><ProductShowcase/><AnalysisShowcase/><AssistantShowcase/><Security/><Steps/><FAQ/><CTA/></main><SubscriptionPlans open={plansOpen} onClose={closePlans}/><LoginFlow open={authOpen} onClose={() => setAuthOpen(false)}/><Footer/></>
+  return <><a className="skip" href="#main">{lang.a11y.skip}</a><Nav onLogin={() => setAuthOpen(true)}/><main id="main" ref={motionScope}><Hero/><Trust/><ReferenceScrollVisuals/><Workflow/><Problems/><Features/><ProductShowcase/><AnalysisShowcase/><AssistantShowcase/><Security/><Steps/><FAQ/><CTA/></main><GavelChatTrigger floating onOpen={() => setAiOpen(true)}/><SubscriptionPlans open={plansOpen} onClose={closePlans} onStartTrial={() => { closePlans(); setAiOpen(true) }}/><AIWorkspace open={aiOpen} onClose={() => setAiOpen(false)}/><LoginFlow open={authOpen} onClose={() => setAuthOpen(false)}/><Footer/></>
 }
