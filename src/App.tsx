@@ -213,7 +213,6 @@ export default function App() {
       gsap.to('.reference-services-art', { y: -16, rotate: -0.7, duration: 3.2, ease: 'sine.inOut', repeat: -1, yoyo: true })
 
       reveal('.reference-services-inner', '.reference-services')
-      reveal('.reference-laptop-copy', '.reference-laptop')
       reveal('.workflow-intro', '.workflow')
       reveal('.section-intro, .product-showcopy, .showcase-copy, .assistant-copy, .faq-title, .security > div:first-child')
       reveal('.feature', '.features')
