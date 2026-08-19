@@ -9,6 +9,12 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useI18n } from './i18n'
 import { useTheme } from './theme'
 import { GavelChatTrigger } from './components/GavelChatTrigger'
+const AUTH_APP_URL = (import.meta.env.VITE_AUTH_APP_URL || 'http://localhost:5174').replace(/\/$/, '')
+
+function openAuthFlow(path = '/login') {
+  window.location.assign(`${AUTH_APP_URL}${path}`)
+}
+
 const LegalAIHeroScene = lazy(() => import('./components/3d/LegalAIHeroScene').then(module => ({ default: module.LegalAIHeroScene })))
 const LegalProductScene = lazy(() => import('./components/3d/LegalAIHeroScene').then(module => ({ default: module.LegalProductScene })))
 const SecurityScene = lazy(() => import('./components/3d/LegalAIHeroScene').then(module => ({ default: module.SecurityScene })))
@@ -21,7 +27,7 @@ function Button({ children, secondary = false, href = '#ابدأ' }: { children:
   return <a href={href} className={`button ${secondary ? 'button-secondary' : ''}`}>{children}{!secondary && <ArrowLeft size={17} aria-hidden="true" />}</a>
 }
 
-function Nav({ onLogin }: { onLogin: () => void }) {
+function Nav() {
   const { lang, locale, setLocale } = useI18n()
   const { theme, setTheme } = useTheme()
   const [open, setOpen] = useState(false)
@@ -30,7 +36,7 @@ function Nav({ onLogin }: { onLogin: () => void }) {
   const switchTheme = () => setTheme(theme === 'light' ? 'dark' : 'light')
   return <header className="nav-wrap"><nav className="nav" aria-label={lang.nav.aria}><Logo />
     <div className={`nav-links ${open ? 'open' : ''}`}>{links.map(([href,label]) => <a key={label} onClick={() => setOpen(false)} href={href}>{label}</a>)}</div>
-    <div className="nav-actions"><button className="login" type="button" onClick={onLogin}>{lang.nav.login}</button><button className="language" type="button" onClick={switchLanguage} aria-label={locale === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'}>{lang.nav.language}</button><button className="theme-toggle" type="button" onClick={switchTheme} aria-pressed={theme === 'dark'} aria-label={theme === 'dark' ? lang.theme.switchToLight : lang.theme.switchToDark} title={theme === 'dark' ? lang.theme.switchToLight : lang.theme.switchToDark}><Sun size={15} aria-hidden="true"/><Moon size={15} aria-hidden="true"/><span>{theme === 'dark' ? lang.theme.dark : lang.theme.light}</span></button><Button href="#الاشتراك">{lang.nav.start}</Button></div>
+    <div className="nav-actions"><button className="login" type="button" onClick={() => openAuthFlow()}>{lang.nav.login}</button><button className="language" type="button" onClick={switchLanguage} aria-label={locale === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'}>{lang.nav.language}</button><button className="theme-toggle" type="button" onClick={switchTheme} aria-pressed={theme === 'dark'} aria-label={theme === 'dark' ? lang.theme.switchToLight : lang.theme.switchToDark} title={theme === 'dark' ? lang.theme.switchToLight : lang.theme.switchToDark}><Sun size={15} aria-hidden="true"/><Moon size={15} aria-hidden="true"/><span>{theme === 'dark' ? lang.theme.dark : lang.theme.light}</span></button><Button href="#الاشتراك">{lang.nav.start}</Button></div>
     <button className="menu" onClick={() => setOpen(!open)} aria-expanded={open} aria-label={open ? lang.nav.menuClose : lang.nav.menuOpen}>{open ? <X /> : <Menu />}</button>
   </nav></header>
 }
@@ -187,7 +193,6 @@ export default function App() {
   const { lang } = useI18n()
   const [plansOpen, setPlansOpen] = useState(false)
   const [aiOpen, setAiOpen] = useState(false)
-  const [authOpen, setAuthOpen] = useState(false)
   const motionScope = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
@@ -244,7 +249,7 @@ export default function App() {
   }, [])
 
   useEffect(() => { const syncPlans = () => { const hash = decodeURIComponent(window.location.hash.slice(1)); setPlansOpen(hash === 'الاشتراك') }; syncPlans(); window.addEventListener('hashchange', syncPlans); return () => window.removeEventListener('hashchange', syncPlans) }, [])
-  useEffect(() => { document.body.style.overflow = plansOpen || authOpen || aiOpen ? 'hidden' : ''; return () => { document.body.style.overflow = '' } }, [plansOpen, authOpen, aiOpen])
+  useEffect(() => { document.body.style.overflow = plansOpen || aiOpen ? 'hidden' : ''; return () => { document.body.style.overflow = '' } }, [plansOpen, aiOpen])
   const closePlans = () => { setPlansOpen(false); if (decodeURIComponent(window.location.hash.slice(1)) === 'الاشتراك') window.history.pushState({}, '', '#الرئيسية') }
-  return <><a className="skip" href="#main">{lang.a11y.skip}</a><Nav onLogin={() => setAuthOpen(true)}/><main id="main" ref={motionScope}><Hero/><Trust/><ReferenceScrollVisuals/><Workflow/><Problems/><Features/><ProductShowcase/><AnalysisShowcase/><AssistantShowcase/><Security/><Steps/><FAQ/><CTA/></main><GavelChatTrigger floating onOpen={() => setAiOpen(true)}/><SubscriptionPlans open={plansOpen} onClose={closePlans} onStartTrial={() => { closePlans(); setAiOpen(true) }}/><AIWorkspace open={aiOpen} onClose={() => setAiOpen(false)}/><LoginFlow open={authOpen} onClose={() => setAuthOpen(false)}/><Footer/></>
+  return <><a className="skip" href="#main">{lang.a11y.skip}</a><Nav/><main id="main" ref={motionScope}><Hero/><Trust/><ReferenceScrollVisuals/><Workflow/><Problems/><Features/><ProductShowcase/><AnalysisShowcase/><AssistantShowcase/><Security/><Steps/><FAQ/><CTA/></main><GavelChatTrigger floating onOpen={() => setAiOpen(true)}/><SubscriptionPlans open={plansOpen} onClose={closePlans} onStartTrial={() => { closePlans(); setAiOpen(true) }}/><AIWorkspace open={aiOpen} onClose={() => setAiOpen(false)}/><Footer/></>
 }
