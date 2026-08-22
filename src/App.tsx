@@ -1,8 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import {
-  ArrowLeft, ArrowUpLeft, Bot, Check, ChevronDown, FileSearch, FileText,
-  Eye, EyeOff, KeyRound, LockKeyhole, Mail, Menu, Moon, Search, ShieldCheck, Sparkles, Sun, Upload, UserRound, X, Zap,
-  Plus, Send, Paperclip, Copy, ThumbsUp, ThumbsDown, RotateCcw
+  ArrowLeft, ArrowUpLeft, Bot, Check, ChevronDown, Copy, FileSearch, FileText,
+  Eye, EyeOff, KeyRound, LockKeyhole, Mail, Menu, Moon, Plus, RotateCcw, Search, Send, ShieldCheck, Sparkles, Square, Sun, Upload, UserRound, X, Zap
 } from 'lucide-react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -14,6 +13,14 @@ const AUTH_APP_URL = (import.meta.env.VITE_AUTH_APP_URL || 'http://localhost:517
 function openAuthFlow(path = '/login') {
   window.location.assign(`${AUTH_APP_URL}${path}`)
 }
+
+const GUEST_AI_API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5290/api/v1').replace(/\/$/, '')
+const GUEST_AI_REQUEST_LIMIT = 5
+type GuestMessage = { id: string; role: 'user' | 'assistant'; content: string; time: string; sources?: string[] }
+type GuestConversation = { id: string; title: string; updatedAt: string; messages: GuestMessage[] }
+class GuestAIError extends Error { constructor(public status: number, message: string) { super(message) } }
+const guestId = () => typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`
+const guestTime = () => new Intl.DateTimeFormat('ar-EG', { timeStyle: 'short' }).format(new Date())
 
 const LegalAIHeroScene = lazy(() => import('./components/3d/LegalAIHeroScene').then(module => ({ default: module.LegalAIHeroScene })))
 const LegalProductScene = lazy(() => import('./components/3d/LegalAIHeroScene').then(module => ({ default: module.LegalProductScene })))
@@ -110,9 +117,17 @@ function FAQ() { const { lang } = useI18n(); const [active,setActive] = useState
 function SubscriptionPlans({ open, onClose, onStartTrial }: { open: boolean, onClose: () => void, onStartTrial: () => void }) { const { lang, locale } = useI18n(); if (!open) return null; const planTitles = locale === 'ar' ? ['التجربة المجانية', 'الخطة الشخصية', 'الخطة المهنية', 'خطة الفريق'] : ['Free trial', 'Personal plan', 'Professional plan', 'Team plan']; return <div className="subscription-modal-backdrop" role="presentation" onClick={onClose}><section className="subscription-plans subscription-modal" id="الاشتراك" role="dialog" aria-modal="true" aria-labelledby="subscription-title" onClick={event => event.stopPropagation()}><button className="subscription-modal-close" type="button" aria-label={lang.plans.close} onClick={onClose}><X size={19}/></button><div className="section-intro centered"><span className="eyebrow">{lang.plans.eyebrow}</span><h2 id="subscription-title">{lang.plans.title}<br/>{lang.plans.title2}</h2><p>{lang.plans.text}</p></div><div className="plan-grid">{lang.plans.plans.map(([name,description,price,items], index) => <article className={`plan-card ${index===2?'featured':''} ${index===0?'trial':''}`} key={name}>{index===2 && <span className="plan-badge">{lang.plans.badge}</span>}{index===0 && <span className="plan-badge trial-badge">{lang.plans.trialBadge}</span>}<span className="plan-audience">{name}</span><h3>{planTitles[index]}</h3><p>{description}</p><div className="plan-price"><b>{price}</b><span>{index===0 ? lang.plans.trialPrice : lang.plans.monthly}</span></div>{index===0 && <div className="trial-limit"><b>{lang.plans.trialLimit}</b><small>{lang.plans.trialNotice}</small></div>}<ul>{items.map(item => <li key={item}><Check size={16}/>{item}</li>)}</ul>{index===0 ? <button className="button" type="button" onClick={onStartTrial}>{lang.plans.trialCta} <ArrowLeft size={17} aria-hidden="true"/></button> : <a className="button" href="#ابدأ">{lang.plans.subscribe} <ArrowLeft size={17} aria-hidden="true"/></a>}</article>)}</div></section></div> }
 
 function AIWorkspace({ open, onClose }: { open: boolean, onClose: () => void }) {
-  const [message, setMessage] = useState('')
-  const [sent, setSent] = useState(false)
   const onlineDotRef = useRef<HTMLSpanElement>(null)
+  const guestSessionRef = useRef(guestId())
+  const abortController = useRef<AbortController | null>(null)
+  const [conversations, setConversations] = useState<GuestConversation[]>([])
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
+  const [message, setMessage] = useState('')
+  const [conversationSearch, setConversationSearch] = useState('')
+  const [remainingRequests, setRemainingRequests] = useState(GUEST_AI_REQUEST_LIMIT)
+  const [sending, setSending] = useState(false)
+  const [requestError, setRequestError] = useState('')
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null)
   useEffect(() => {
     if (!open || !onlineDotRef.current || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const context = gsap.context(() => {
@@ -121,10 +136,58 @@ function AIWorkspace({ open, onClose }: { open: boolean, onClose: () => void }) 
     return () => context.revert()
   }, [open])
   if (!open) return null
-  const submit = () => { if (!message.trim()) return; setSent(true); setMessage('') }
+  const activeConversation = conversations.find(item => item.id === activeConversationId)
+  const visibleConversations = conversations.filter(item => item.title.toLocaleLowerCase().includes(conversationSearch.trim().toLocaleLowerCase()))
+  const startNewConversation = () => { setActiveConversationId(null); setMessage(''); setRequestError('') }
+  const selectConversation = (id: string) => { setActiveConversationId(id); setMessage(''); setRequestError('') }
+  const updateConversation = (id: string, update: (conversation: GuestConversation) => GuestConversation) => setConversations(current => current.map(item => item.id === id ? update(item) : item))
+  const sendQuestion = async (question: string) => {
+    const trimmed = question.trim()
+    if (!trimmed || sending) return
+    if (remainingRequests <= 0) { setRequestError('انتهت الطلبات المجانية لهذه الجلسة. حاول مرة أخرى لاحقًا.'); return }
+    const existing = activeConversation
+    const conversationId = existing?.id ?? guestId()
+    const history = existing?.messages ?? []
+    const userMessage: GuestMessage = { id: guestId(), role: 'user', content: trimmed, time: guestTime() }
+    const conversation: GuestConversation = existing
+      ? { ...existing, title: existing.title || trimmed.slice(0, 80), updatedAt: userMessage.time, messages: [...existing.messages, userMessage] }
+      : { id: conversationId, title: trimmed.slice(0, 80), updatedAt: userMessage.time, messages: [userMessage] }
+    setActiveConversationId(conversationId)
+    setConversations(current => existing ? current.map(item => item.id === conversationId ? conversation : item) : [conversation, ...current])
+    setMessage('')
+    setRequestError('')
+    setSending(true)
+    setRemainingRequests(current => Math.max(0, current - 1))
+    const controller = new AbortController()
+    abortController.current = controller
+    try {
+      const response = await fetch(`${GUEST_AI_API_BASE}/ai/guest-chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Guest-Session': guestSessionRef.current },
+        body: JSON.stringify({ message: trimmed, history: history.map(item => ({ role: item.role, content: item.content })) }),
+        signal: controller.signal,
+      })
+      const payload = await response.json().catch(() => ({})) as { answer?: string; sources?: { title?: string }[]; detail?: string }
+      if (!response.ok) throw new GuestAIError(response.status, payload.detail || 'تعذر الوصول إلى المساعد حاليًا.')
+      if (!payload.answer?.trim()) throw new GuestAIError(503, 'لم تُرجع خدمة المساعد إجابة صالحة.')
+      const assistantMessage: GuestMessage = { id: guestId(), role: 'assistant', content: payload.answer, time: guestTime(), sources: payload.sources?.map(source => source.title || 'مصدر قانوني') ?? [] }
+      updateConversation(conversationId, current => ({ ...current, updatedAt: assistantMessage.time, messages: [...current.messages, assistantMessage] }))
+    } catch (error) {
+      const cancelled = error instanceof DOMException && error.name === 'AbortError'
+      const status = error instanceof GuestAIError ? error.status : 0
+      setRequestError(cancelled ? 'تم إيقاف توليد الإجابة.' : status === 429 ? 'انتهت الطلبات المجانية لهذه الجلسة. حاول مرة أخرى لاحقًا.' : error instanceof Error ? error.message : 'تعذر الوصول إلى المساعد حاليًا.')
+      if (status === 429) setRemainingRequests(0)
+    } finally {
+      abortController.current = null
+      setSending(false)
+    }
+  }
+  const copyMessage = async (item: GuestMessage) => { try { await navigator.clipboard.writeText(item.content); setCopiedMessageId(item.id); window.setTimeout(() => setCopiedMessageId(current => current === item.id ? null : current), 1400) } catch { setRequestError('تعذر نسخ الإجابة.') } }
+  const retryLastQuestion = () => { const lastQuestion = [...(activeConversation?.messages ?? [])].reverse().find(item => item.role === 'user'); if (lastQuestion) void sendQuestion(lastQuestion.content) }
+  const stopGeneration = () => abortController.current?.abort()
   return <div className="ai-workspace-backdrop" role="presentation"><div className="ai-workspace" dir="rtl" role="dialog" aria-modal="true" aria-labelledby="ai-workspace-title">
-    <aside className="ai-sidebar"><div className="ai-sidebar-top"><div><span className="eyebrow">المساعد القانوني</span><h2>محادثاتك</h2></div></div><button className="ai-new-chat" type="button" onClick={() => setSent(false)}><Plus size={17}/> محادثة جديدة</button><label className="ai-search"><Search size={16}/><input placeholder="ابحث في المحادثات" aria-label="ابحث في المحادثات"/></label><span className="ai-group-label">اليوم</span><button className="ai-conversation active" type="button">شروط رفع الدعوى المدنية؟<small>الآن</small></button><span className="ai-group-label">أمس</span><button className="ai-conversation" type="button">إجراءات الاستئناف<small>أمس</small></button><button className="ai-conversation" type="button">شروط عقد البيع<small>أمس</small></button></aside>
-    <section className="ai-chat-panel"><header className="ai-chat-header"><div><span ref={onlineDotRef} className="ai-online-dot" aria-hidden="true"/> <strong id="ai-workspace-title">المساعد القانوني الذكي</strong><small>معلومات عامة مدعومة بالمصادر</small></div><button className="ai-icon-button" type="button" aria-label="إغلاق المساعد" onClick={onClose}><X size={19}/></button></header><div className="ai-message-scroll">{!sent ? <div className="ai-empty"><Suspense fallback={<div className="ai-empty-icon"><Bot size={28}/></div>}><AIAssistantImage open={open}/></Suspense><h3>كيف يمكنني مساعدتك؟</h3><p>اكتب سؤالك القانوني وسأساعدك في فهمه مع توضيح المصادر ذات الصلة.</p><div className="ai-suggestion-grid">{['ما هي شروط رفع الدعوى المدنية؟','ما الفرق بين الدعوى والطلب؟','ما هي إجراءات الاستئناف؟','ما هي شروط صحة عقد البيع؟'].map(item => <button key={item} type="button" onClick={() => setMessage(item)}>{item}<ArrowLeft size={14}/></button>)}</div></div> : <div className="ai-conversation-view"><div className="ai-user-bubble">{sent ? 'ما هي شروط رفع الدعوى المدنية؟' : message}<small>الآن</small></div><div className="ai-answer"><div className="ai-answer-avatar"><Bot size={17}/></div><div><span className="ai-answer-label">الإجابة المختصرة</span><p>تختلف شروط قبول الدعوى بحسب نوعها، ولكن توجد مجموعة من الشروط العامة التي ينبغي توافرها. هذه إجابة توضيحية تجريبية، ويُنصح بمراجعة محامٍ مختص قبل اتخاذ أي إجراء.</p><div className="ai-sources"><strong>المصادر المقترحة</strong><button type="button"><FileText size={14}/> قانون المرافعات المدنية والتجارية <ArrowLeft size={13}/></button><button type="button"><FileText size={14}/> المادة 63 <ArrowLeft size={13}/></button></div><div className="ai-answer-actions"><button type="button" aria-label="نسخ الإجابة"><Copy size={15}/></button><button type="button" aria-label="إجابة مفيدة"><ThumbsUp size={15}/></button><button type="button" aria-label="إجابة غير مفيدة"><ThumbsDown size={15}/></button><button type="button" aria-label="إعادة إنشاء الإجابة"><RotateCcw size={15}/></button></div></div></div></div>}</div><div className="ai-composer-wrap"><div className="ai-composer"><textarea value={message} onChange={event => setMessage(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); submit() } }} placeholder="اكتب سؤالك القانوني هنا..." aria-label="اكتب سؤالك القانوني هنا..." rows={1}/><button className="ai-attach" type="button" aria-label="إرفاق مستند"><Paperclip size={18}/></button><button className="ai-send" type="button" aria-label="إرسال السؤال" onClick={submit} disabled={!message.trim()}><Send size={17}/></button></div><small>المساعد الذكي يقدم معلومات عامة ولا يغني عن استشارة محامٍ مختص.</small></div></section>
+    <aside className="ai-sidebar"><div className="ai-sidebar-top"><div><span className="eyebrow">المساعد القانوني</span><h2>محادثاتك</h2></div></div><button className="ai-new-chat" type="button" onClick={startNewConversation}><Plus size={17}/> محادثة جديدة</button><label className="ai-search"><Search size={16}/><input value={conversationSearch} onChange={event => setConversationSearch(event.target.value)} placeholder="ابحث في المحادثات" aria-label="ابحث في المحادثات"/></label><span className="ai-group-label">هذه الجلسة</span>{visibleConversations.map(item => <button className={activeConversationId === item.id ? 'ai-conversation active' : 'ai-conversation'} type="button" key={item.id} onClick={() => selectConversation(item.id)}>{item.title}<small>{item.updatedAt}</small></button>)}{!visibleConversations.length && <p className="ai-history-empty">ابدأ أول سؤال لعرض محادثتك هنا.</p>}<div className="ai-guest-usage"><span>الطلبات المجانية</span><b>{remainingRequests} من {GUEST_AI_REQUEST_LIMIT}</b><small>يتجدد الحد كل ساعة</small></div></aside>
+    <section className="ai-chat-panel"><header className="ai-chat-header"><div><span ref={onlineDotRef} className="ai-online-dot" aria-hidden="true"/> <strong id="ai-workspace-title">المساعد القانوني الذكي</strong><small>معلومات عامة بدون تسجيل دخول · {GUEST_AI_REQUEST_LIMIT} طلبات مجانية كل ساعة</small></div><button className="ai-icon-button" type="button" aria-label="إغلاق المساعد" onClick={onClose}><X size={19}/></button></header><div className="ai-message-scroll">{activeConversation?.messages.length ? <div className="ai-conversation-view">{activeConversation.messages.map((item, index) => <div className={item.role === 'user' ? 'ai-chat-message ai-chat-message--user' : 'ai-chat-message ai-chat-message--assistant'} key={item.id}>{item.role === 'user' ? <div className="ai-user-bubble">{item.content}<small>{item.time}</small></div> : <div className="ai-answer"><div className="ai-answer-avatar"><Bot size={17}/></div><div><span className="ai-answer-label">الإجابة المختصرة</span><p>{item.content}</p><small className="ai-message-time">{item.time}</small>{item.sources?.length ? <div className="ai-sources"><strong>المصادر</strong>{item.sources.map(source => <span key={`${item.id}-${source}`}><FileText size={14}/> {source}</span>)}</div> : null}<div className="ai-answer-actions"><button type="button" aria-label="نسخ الإجابة" onClick={() => void copyMessage(item)}>{copiedMessageId === item.id ? <Check size={15}/> : <Copy size={15}/>}</button>{index === activeConversation.messages.length - 1 && <button type="button" aria-label="إعادة إنشاء الإجابة" onClick={retryLastQuestion} disabled={sending || remainingRequests <= 0}><RotateCcw size={15}/></button>}</div></div></div>}</div>)}{sending && <div className="ai-answer ai-answer--loading"><div className="ai-answer-avatar"><Bot size={17}/></div><div className="ai-typing"><i/><i/><i/></div></div>}</div> : <div className="ai-empty"><Suspense fallback={<div className="ai-empty-icon"><Bot size={28}/></div>}><AIAssistantImage open={open}/></Suspense><h3>كيف يمكنني مساعدتك؟</h3><p>اكتب سؤالك القانوني وسأساعدك في فهمه، بدون تسجيل دخول، ضمن عدد الطلبات المجانية المتاح.</p><div className="ai-suggestion-grid">{['ما هي شروط رفع الدعوى المدنية؟','ما الفرق بين الدعوى والطلب؟','ما هي إجراءات الاستئناف؟','ما هي شروط صحة عقد البيع؟'].map(item => <button key={item} type="button" onClick={() => setMessage(item)} disabled={remainingRequests <= 0}>{item}<ArrowLeft size={14}/></button>)}</div></div>}{requestError && <p className="ai-request-error" role="alert">{requestError}</p>}</div><div className="ai-composer-wrap"><form className="ai-composer" onSubmit={event => { event.preventDefault(); void sendQuestion(message) }}><textarea value={message} onChange={event => setMessage(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void sendQuestion(message) } }} placeholder={remainingRequests > 0 ? 'اكتب سؤالك القانوني هنا...' : 'انتهت الطلبات المجانية لهذه الجلسة'} aria-label="اكتب سؤالك القانوني هنا..." rows={1} disabled={sending || remainingRequests <= 0}/>{sending ? <button className="ai-send" type="button" aria-label="إيقاف التوليد" onClick={stopGeneration}><Square size={17}/></button> : <button className="ai-send" type="submit" aria-label="إرسال السؤال" disabled={!message.trim() || remainingRequests <= 0}><Send size={17}/></button>}</form><small>{remainingRequests > 0 ? `متبقي ${remainingRequests} طلبات مجانية لهذه الجلسة.` : 'انتهت الطلبات المجانية. حاول مرة أخرى لاحقًا.'}</small></div></section>
   </div></div>
 }
 
