@@ -2,6 +2,15 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 
 export type Theme = 'light' | 'dark'
 
+const themeStorageKey = 'sanad-theme'
+const readSharedTheme = (): Theme | null => {
+  const value = document.cookie.split('; ').find(item => item.startsWith(`${themeStorageKey}=`))?.split('=')[1]
+  return value === 'dark' || value === 'light' ? value : null
+}
+const writeSharedTheme = (theme: Theme) => {
+  document.cookie = `${themeStorageKey}=${theme}; Path=/; Max-Age=31536000; SameSite=Lax`
+}
+
 type ThemeContextValue = {
   theme: Theme
   setTheme: (theme: Theme) => void
@@ -10,10 +19,13 @@ type ThemeContextValue = {
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(() => localStorage.getItem('sanad-theme') === 'dark' ? 'dark' : 'light')
-  const setTheme = (next: Theme) => { setThemeState(next); localStorage.setItem('sanad-theme', next) }
+  const [theme, setThemeState] = useState<Theme>(() => {
+    const saved = localStorage.getItem(themeStorageKey)
+    return saved === 'dark' || saved === 'light' ? saved : readSharedTheme() ?? 'light'
+  })
+  const setTheme = (next: Theme) => { setThemeState(next); localStorage.setItem(themeStorageKey, next); writeSharedTheme(next) }
 
-  useEffect(() => { document.documentElement.dataset.theme = theme }, [theme])
+  useEffect(() => { document.documentElement.dataset.theme = theme; writeSharedTheme(theme) }, [theme])
 
   const value = useMemo(() => ({ theme, setTheme }), [theme])
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>

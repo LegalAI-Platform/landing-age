@@ -9,6 +9,7 @@
     "preview": "node ./node_modules/vite/bin/vite.js preview"
   },
   "dependencies": {
+    "@gsap/react": "^2.1.2",
     "@react-three/drei": "latest",
     "@react-three/fiber": "latest",
     "@vitejs/plugin-react": "latest",

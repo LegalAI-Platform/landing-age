@@ -5,13 +5,18 @@ import {
 } from 'lucide-react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useGSAP } from '@gsap/react'
 import { useI18n } from './i18n'
 import { useTheme } from './theme'
 import { GavelChatTrigger } from './components/GavelChatTrigger'
+import { LegalRobotHero } from './components/3d/LegalRobotHero'
+gsap.registerPlugin(useGSAP, ScrollTrigger)
 const AUTH_APP_URL = (import.meta.env.VITE_AUTH_APP_URL || 'http://localhost:5174').replace(/\/$/, '')
 
 function openAuthFlow(path = '/login') {
-  window.location.assign(`${AUTH_APP_URL}${path}`)
+  const url = new URL(path, `${AUTH_APP_URL}/`)
+  url.searchParams.set('theme', document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light')
+  window.location.assign(url.toString())
 }
 
 const GUEST_AI_API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5290/api/v1').replace(/\/$/, '')
@@ -61,7 +66,7 @@ function ReferenceHeroVisual() {
   const { lang } = useI18n()
   return <div className="reference-visual" role="img" aria-label={lang.reference.aria}>
     <div className="reference-glow" />
-    <img src="/reference-legal-workspace.png" alt={lang.reference.alt} />
+    <LegalRobotHero />
     <span className="reference-scan" aria-hidden="true" />
     <span className="reference-pulse pulse-one" aria-hidden="true" />
     <span className="reference-pulse pulse-two" aria-hidden="true" />
@@ -69,9 +74,124 @@ function ReferenceHeroVisual() {
   </div>
 }
 
-function Hero() { const { lang } = useI18n(); return <section id="الرئيسية" className="hero hero-3d"><div className="hero-copy"><div className="eyebrow top"><span/> {lang.hero.eyebrow}</div><h1>{lang.hero.title}<br/><em>{lang.hero.titleAccent}</em></h1><p>{lang.hero.description}</p><div className="hero-actions"><Button href="#الاشتراك">{lang.nav.start}</Button><Button secondary>{lang.reference.cta}</Button></div><div className="designed"><ShieldCheck size={17}/> {lang.hero.designed}</div></div><ReferenceHeroVisual /></section> }
+function Hero() {
+  const { lang } = useI18n()
+  const heroRef = useRef<HTMLElement | null>(null)
+  const glowRef = useRef<HTMLDivElement | null>(null)
 
-function Trust() { const { lang } = useI18n(); const icons = [LockKeyhole, ShieldCheck, Check, Zap]; return <section className="trust"><p>{lang.trust.intro}</p><div>{lang.trust.items.map((text, index) => { const Icon = icons[index]; return <span key={text}><Icon size={16}/>{text}</span> })}</div></section> }
+  useGSAP(() => {
+    const hero = heroRef.current
+    const glow = glowRef.current
+    if (!hero || !glow) return
+
+    const media = gsap.matchMedia()
+    media.add({
+      canHover: '(hover: hover) and (pointer: fine)',
+      reduceMotion: '(prefers-reduced-motion: reduce)'
+    }, context => {
+      const canHover = Boolean(context.conditions?.canHover)
+      const reduceMotion = Boolean(context.conditions?.reduceMotion)
+      const initial = hero.getBoundingClientRect()
+
+      gsap.set(glow, {
+        x: initial.width * .68,
+        y: initial.height * .38,
+        xPercent: -50,
+        yPercent: -50,
+        opacity: canHover && !reduceMotion ? .58 : .34
+      })
+
+      if (!canHover || reduceMotion) return
+
+      const moveX = gsap.quickTo(glow, 'x', { duration: .72, ease: 'power3.out' })
+      const moveY = gsap.quickTo(glow, 'y', { duration: .72, ease: 'power3.out' })
+      const fade = gsap.quickTo(glow, 'opacity', { duration: .32, ease: 'power2.out' })
+      const onPointerMove = (event: PointerEvent) => {
+        const bounds = hero.getBoundingClientRect()
+        moveX(event.clientX - bounds.left)
+        moveY(event.clientY - bounds.top)
+      }
+      const onPointerMoveWithFade = (event: PointerEvent) => {
+        onPointerMove(event)
+        fade(.8)
+      }
+      const onPointerOut = (event: PointerEvent) => {
+        if (!event.relatedTarget) fade(.46)
+      }
+
+      window.addEventListener('pointermove', onPointerMoveWithFade, { passive: true })
+      window.addEventListener('pointerout', onPointerOut, { passive: true })
+
+      return () => {
+        window.removeEventListener('pointermove', onPointerMoveWithFade)
+        window.removeEventListener('pointerout', onPointerOut)
+        gsap.killTweensOf(glow)
+      }
+    }, hero)
+
+    return () => media.revert()
+  }, { scope: heroRef })
+
+  return <section ref={heroRef} id="الرئيسية" className="hero hero-3d">
+    <div ref={glowRef} className="hero-mouse-glow" aria-hidden="true" />
+    <div className="hero-copy"><div className="eyebrow top"><span/> {lang.hero.eyebrow}</div><h1>{lang.hero.title}<br/><em>{lang.hero.titleAccent}</em></h1><p>{lang.hero.description}</p><div className="hero-actions"><Button href="#الاشتراك">{lang.nav.start}</Button><Button secondary>{lang.reference.cta}</Button></div><div className="designed"><ShieldCheck size={17}/> {lang.hero.designed}</div></div>
+    <ReferenceHeroVisual />
+  </section>
+}
+
+function Trust() {
+  const { lang } = useI18n()
+  const trustRef = useRef<HTMLElement | null>(null)
+  const entries = [
+    { text: lang.trust.intro, Icon: Sparkles },
+    ...lang.trust.items.map((text, index) => ({ text, Icon: [LockKeyhole, ShieldCheck, Check, Zap][index] }))
+  ]
+
+  useGSAP(() => {
+    const section = trustRef.current
+    const track = section?.querySelector<HTMLElement>('.trust-track')
+    const firstGroup = section?.querySelector<HTMLElement>('.trust-group')
+    if (!section || !track || !firstGroup) return
+
+    const media = gsap.matchMedia()
+    media.add('(prefers-reduced-motion: no-preference)', () => {
+      const tween = gsap.fromTo(track, { x: 0 }, {
+        x: () => -firstGroup.offsetWidth,
+        duration: () => Math.max(24, firstGroup.offsetWidth / 62),
+        ease: 'none',
+        repeat: -1,
+        repeatRefresh: true
+      })
+      const pause = () => tween.pause()
+      const resume = () => tween.resume()
+      section.addEventListener('pointerenter', pause)
+      section.addEventListener('pointerleave', resume)
+      section.addEventListener('focusin', pause)
+      section.addEventListener('focusout', resume)
+
+      return () => {
+        section.removeEventListener('pointerenter', pause)
+        section.removeEventListener('pointerleave', resume)
+        section.removeEventListener('focusin', pause)
+        section.removeEventListener('focusout', resume)
+        tween.kill()
+      }
+    })
+    return () => media.revert()
+  }, { scope: trustRef, dependencies: [lang.trust.intro, ...lang.trust.items] })
+
+  return <section ref={trustRef} className="trust trust-marquee-section" aria-label={lang.trust.intro}>
+    <div className="trust-marquee">
+      <div className="trust-track">
+        {[0, 1].map(copy => <div className="trust-group" aria-hidden={copy === 1} key={copy}>
+          {[0, 1, 2].flatMap(round => entries.map(({ text, Icon }, index) => <span className="trust-chip" key={`${copy}-${round}-${index}`}>
+            <Icon size={16} aria-hidden="true"/><b>{text}</b>
+          </span>))}
+        </div>)}
+      </div>
+    </div>
+  </section>
+}
 
 function RevealSection({ children, className, id }: { children: React.ReactNode, className: string, id?: string }) {
   const ref = useRef<HTMLElement | null>(null)
@@ -100,7 +220,91 @@ function Workflow() {
 
 function Problems() { const { lang } = useI18n(); return <section className="section problem" id="كيف يعمل"><div className="section-intro"><span className="eyebrow">{lang.problems.eyebrow}</span><h2>{lang.problems.title}<br/>{lang.problems.title2}</h2><p>{lang.problems.text}</p></div><div className="problem-grid">{lang.problems.items.map((item,i) => <div className="problem-card" key={item}><span>0{i+1}</span><p>{item}</p><div className="line"/></div>)}</div></section> }
 
-function Features() { const { lang } = useI18n(); const icons = [FileSearch, Bot, FileText, ShieldCheck, Search, LockKeyhole]; return <section className="section features" id="المميزات"><div className="section-intro centered"><span className="eyebrow">{lang.features.eyebrow}</span><h2>{lang.features.title}<br/>{lang.features.title2}</h2></div><div className="feature-grid">{lang.features.items.map(([title,text], index) => { const Icon = icons[index]; return <article className="feature" key={title}><div className="feature-icon"><Icon size={22}/></div><h3>{title}</h3><p>{text}</p><a href="#ابدأ">{lang.features.explore} <ArrowLeft size={15}/></a></article>})}</div></section> }
+function Features() {
+  const { lang } = useI18n()
+  const icons = [FileSearch, Bot, FileText, ShieldCheck, Search, LockKeyhole]
+  const sectionRef = useRef<HTMLElement | null>(null)
+
+  useGSAP(() => {
+    const section = sectionRef.current
+    if (!section) return
+    const cards = gsap.utils.toArray<HTMLElement>('.feature', section)
+    const media = gsap.matchMedia()
+
+    media.add({
+      interactive: '(min-width: 701px) and (hover: hover) and (pointer: fine)',
+      reduceMotion: '(prefers-reduced-motion: reduce)'
+    }, context => {
+      const reduceMotion = Boolean(context.conditions?.reduceMotion)
+      const interactive = Boolean(context.conditions?.interactive)
+
+      if (!reduceMotion) {
+        gsap.from(cards, {
+          autoAlpha: 0,
+          y: 42,
+          rotationY: -5,
+          duration: .72,
+          stagger: { each: .07, from: 'start' },
+          ease: 'power3.out',
+          scrollTrigger: { trigger: section, start: 'top 78%', once: true }
+        })
+      }
+
+      if (!interactive || reduceMotion) return
+
+      const controls = cards.map(card => ({
+        x: gsap.quickTo(card, 'x', { duration: .5, ease: 'power3.out' }),
+        y: gsap.quickTo(card, 'y', { duration: .5, ease: 'power3.out' }),
+        scale: gsap.quickTo(card, '--card-scale', { duration: .5, ease: 'power3.out' }),
+        rotationY: gsap.quickTo(card, 'rotationY', { duration: .5, ease: 'power3.out' })
+      }))
+
+      const resetDeck = () => cards.forEach((card, index) => {
+        controls[index].x(0)
+        controls[index].y(0)
+        controls[index].scale(1)
+        controls[index].rotationY(0)
+        card.style.zIndex = String(index + 1)
+      })
+      const activateCard = (activeIndex: number) => cards.forEach((card, index) => {
+        const distance = index - activeIndex
+        const direction = Math.sign(distance)
+        controls[index].x(distance === 0 ? 0 : direction * -20)
+        controls[index].y(distance === 0 ? -28 : Math.min(10, Math.abs(distance) * 3))
+        controls[index].scale(distance === 0 ? 1.065 : Math.max(.94, .982 - Math.abs(distance) * .012))
+        controls[index].rotationY(distance === 0 ? 0 : direction * -3.5)
+        card.style.zIndex = distance === 0 ? '30' : String(20 - Math.abs(distance))
+      })
+
+      const listeners = cards.map((card, index) => {
+        const activate = () => activateCard(index)
+        card.addEventListener('pointerenter', activate, { passive: true })
+        card.addEventListener('focusin', activate)
+        return { card, activate }
+      })
+      const onFocusOut = (event: FocusEvent) => {
+        if (!section.contains(event.relatedTarget as Node | null)) resetDeck()
+      }
+      section.addEventListener('pointerleave', resetDeck, { passive: true })
+      section.addEventListener('focusout', onFocusOut)
+      resetDeck()
+
+      return () => {
+        listeners.forEach(({ card, activate }) => {
+          card.removeEventListener('pointerenter', activate)
+          card.removeEventListener('focusin', activate)
+        })
+        section.removeEventListener('pointerleave', resetDeck)
+        section.removeEventListener('focusout', onFocusOut)
+        gsap.killTweensOf(cards)
+      }
+    }, section)
+
+    return () => media.revert()
+  }, { scope: sectionRef })
+
+  return <section ref={sectionRef} className="section features" id="المميزات"><div className="section-intro centered"><span className="eyebrow">{lang.features.eyebrow}</span><h2>{lang.features.title}<br/>{lang.features.title2}</h2></div><div className="feature-grid">{lang.features.items.map(([title,text], index) => { const Icon = icons[index]; return <article className="feature" key={title}><div className="feature-surface"><div className="feature-icon"><Icon size={22}/></div><h3>{title}</h3><p>{text}</p><a href="#ابدأ">{lang.features.explore} <ArrowLeft size={15}/></a></div></article>})}</div></section>
+}
 
 function ProductShowcase() { const { lang, locale } = useI18n(); return <section className="section product-showcase"><div className="product-showcopy"><span className="eyebrow">{lang.product.eyebrow}</span><h2>{lang.product.title}<br/>{lang.product.title2}</h2><p>{lang.product.text}</p><div className="showcase-stats"><span><b>{locale === 'ar' ? '٤' : '4'}</b> {lang.product.stats[0]}</span><span><b>{locale === 'ar' ? 'متوسط' : 'Medium'}</b> {lang.product.stats[1]}</span></div><Button secondary>{lang.reference.laptopCta}</Button></div><div className="product-3d-shell"><video className="product-demo-video" autoPlay muted loop playsInline preload="metadata" aria-label={lang.product.aria}><source src="/create-video-demo.mp4" type="video/mp4" /></video><div className="product-status"><span className="status-dot"/> {lang.product.status}</div><div className="product-clause">{lang.product.clause} <b>{lang.product.needsReview}</b></div></div></section> }
 
@@ -271,14 +475,13 @@ export default function App() {
         return gsap.utils.toArray<HTMLElement>(target).map((element) => gsap.from(element, { ...vars, stagger: 0, scrollTrigger: { trigger: element, start: 'top 84%', once: true } }))
       }
 
-      gsap.from('.hero-copy > *', { autoAlpha: 0, y: 22, duration: 0.65, stagger: 0.08, ease: 'power2.out', delay: 0.1 })
-      gsap.from('.reference-visual', { autoAlpha: 0, x: 30, scale: 0.98, duration: 0.8, ease: 'power2.out', delay: 0.2 })
+      gsap.from('.hero-copy > *', { y: 22, duration: 0.65, stagger: 0.08, ease: 'power2.out', delay: 0.1, clearProps: 'transform' })
+      gsap.from('.reference-visual', { x: 30, scale: 0.98, duration: 0.8, ease: 'power2.out', delay: 0.2, clearProps: 'transform' })
       gsap.to('.reference-services-art', { y: -16, rotate: -0.7, duration: 3.2, ease: 'sine.inOut', repeat: -1, yoyo: true })
 
       reveal('.reference-services-inner', '.reference-services')
       reveal('.workflow-intro', '.workflow')
       reveal('.section-intro, .product-showcopy, .showcase-copy, .assistant-copy, .faq-title, .security > div:first-child')
-      reveal('.feature', '.features')
       reveal('.workflow-step', '.workflow')
       reveal('.problem-card', '.problem')
       reveal('.analysis-card', '.showcase')
@@ -290,7 +493,7 @@ export default function App() {
 
       mediaContext = gsap.matchMedia()
       mediaContext.add('(min-width: 701px)', () => {
-        gsap.to('.reference-visual img', {
+        gsap.to('.reference-visual', {
           yPercent: -6,
           ease: 'none',
           scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.7 }
