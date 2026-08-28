@@ -11,7 +11,7 @@ import { useTheme } from './theme'
 import { GavelChatTrigger } from './components/GavelChatTrigger'
 import { LegalRobotHero } from './components/3d/LegalRobotHero'
 gsap.registerPlugin(useGSAP, ScrollTrigger)
-const AUTH_APP_URL = (import.meta.env.VITE_AUTH_APP_URL || 'http://localhost:5174').replace(/\/$/, '')
+const AUTH_APP_URL = (import.meta.env.VITE_AUTH_APP_URL || 'http://localhost:5173').replace(/\/$/, '')
 
 function openAuthFlow(path = '/login') {
   const url = new URL(path, `${AUTH_APP_URL}/`)
@@ -43,10 +43,17 @@ function Nav() {
   const { lang, locale, setLocale } = useI18n()
   const { theme, setTheme } = useTheme()
   const [open, setOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 36)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
   const links = [['#الرئيسية', lang.nav.home], ['#المميزات', lang.nav.features], ['#كيف يعمل', lang.nav.how], ['#حلول المحامين', lang.nav.lawyers], ['#الأمان', lang.nav.security], ['#الأسئلة الشائعة', lang.nav.faq]]
   const switchLanguage = () => setLocale(locale === 'ar' ? 'en' : 'ar')
   const switchTheme = () => setTheme(theme === 'light' ? 'dark' : 'light')
-  return <header className="nav-wrap"><nav className="nav" aria-label={lang.nav.aria}><Logo />
+  return <header className={`nav-wrap ${scrolled ? 'scrolled' : ''}`}><nav className="nav" aria-label={lang.nav.aria}><Logo />
     <div className={`nav-links ${open ? 'open' : ''}`}>{links.map(([href,label]) => <a key={label} onClick={() => setOpen(false)} href={href}>{label}</a>)}</div>
     <div className="nav-actions"><button className="login" type="button" onClick={() => openAuthFlow()}>{lang.nav.login}</button><button className="language" type="button" onClick={switchLanguage} aria-label={locale === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'}>{lang.nav.language}</button><button className="theme-toggle" type="button" onClick={switchTheme} aria-pressed={theme === 'dark'} aria-label={theme === 'dark' ? lang.theme.switchToLight : lang.theme.switchToDark} title={theme === 'dark' ? lang.theme.switchToLight : lang.theme.switchToDark}><Sun size={15} aria-hidden="true"/><Moon size={15} aria-hidden="true"/><span>{theme === 'dark' ? lang.theme.dark : lang.theme.light}</span></button><Button href="#الاشتراك">{lang.nav.start}</Button></div>
     <button className="menu" onClick={() => setOpen(!open)} aria-expanded={open} aria-label={open ? lang.nav.menuClose : lang.nav.menuOpen}>{open ? <X /> : <Menu />}</button>
@@ -74,8 +81,37 @@ function ReferenceHeroVisual() {
   </div>
 }
 
+function HeroParticleTitle({ lines }: { lines: string[] }) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const wrapRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    const canvas = canvasRef.current; const wrap = wrapRef.current
+    if (!canvas || !wrap) return
+    const ctx = canvas.getContext('2d'); const sample = document.createElement('canvas'); const sampleCtx = sample.getContext('2d')
+    if (!ctx || !sampleCtx) return
+    let animation = 0; let particles: { x:number; y:number; tx:number; ty:number; vx:number; vy:number; accent:boolean }[] = []; let pointer = { x:-1000, y:-1000 }
+    const resize = () => {
+      const rect = wrap.getBoundingClientRect(); const ratio = Math.min(window.devicePixelRatio || 1, 2); const width = Math.max(1, Math.floor(rect.width)); const height = Math.max(1, Math.floor(rect.height))
+      canvas.width = width * ratio; canvas.height = height * ratio; canvas.style.width = `${width}px`; canvas.style.height = `${height}px`; ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
+      sample.width = width; sample.height = height; sampleCtx.clearRect(0, 0, width, height); sampleCtx.direction = 'rtl'; sampleCtx.textAlign = 'center'; sampleCtx.textBaseline = 'middle'
+      const titleStyle = getComputedStyle(wrap.querySelector('h1') as HTMLElement); const fontSize = parseFloat(titleStyle.fontSize); sampleCtx.font = `${titleStyle.fontWeight} ${fontSize}px ${titleStyle.fontFamily}`; sampleCtx.direction = 'rtl'; sampleCtx.textAlign = 'right'; sampleCtx.textBaseline = 'alphabetic'
+      const wrapText = (value: string) => { const words = value.trim().split(/\s+/); const result: string[] = []; let line = ''; for (const word of words) { const candidate = line ? `${word} ${line}` : word; if (line && sampleCtx.measureText(candidate).width > width * .98) { result.push(line); line = word } else line = candidate } if (line) result.push(line); return result }
+      const renderedLines = lines.flatMap(line => wrapText(line)); const lineHeight = fontSize * 1.08; const firstBaseline = (height - renderedLines.length * lineHeight) / 2 + fontSize
+      renderedLines.forEach((line, index) => { sampleCtx.fillStyle = '#000'; sampleCtx.fillText(line, width * .98, firstBaseline + index * lineHeight) })
+      const data = sampleCtx.getImageData(0, 0, width, height).data; const next: typeof particles = []
+      for (let y = 0; y < height; y += 3) for (let x = 0; x < width; x += 3) if (data[(y * width + x) * 4 + 3] > 100) next.push({ x:x + (Math.random() - .5) * 18, y:y + (Math.random() - .5) * 18, tx:x, ty:y, vx:0, vy:0, accent:y > firstBaseline + Math.max(0, renderedLines.length - 2) * lineHeight })
+      particles = next
+    }
+    const draw = () => { const rect = wrap.getBoundingClientRect(); const dark = document.documentElement.dataset.theme === 'dark'; ctx.clearRect(0, 0, rect.width, rect.height); for (const p of particles) { const dx = p.tx - p.x; const dy = p.ty - p.y; const mx = p.x - pointer.x; const my = p.y - pointer.y; const distance = Math.hypot(mx, my); if (distance < 110) { const force = (110 - distance) / 110; p.vx += (mx / (distance || 1)) * force * .75; p.vy += (my / (distance || 1)) * force * .75 } p.vx += dx * .012; p.vy += dy * .012; p.vx *= .88; p.vy *= .88; p.x += p.vx; p.y += p.vy; ctx.fillStyle = dark ? (p.accent ? `rgba(226,190,125,${.86 + Math.random() * .14})` : `rgba(255,239,207,${.82 + Math.random() * .16})`) : (p.accent ? `rgba(166,113,38,${.86 + Math.random() * .14})` : `rgba(61,39,27,${.82 + Math.random() * .16})`); ctx.beginPath(); ctx.arc(p.x, p.y, 1.35 + Math.random() * 1.1, 0, Math.PI * 2); ctx.fill() } animation = requestAnimationFrame(draw) }
+    const move = (event: PointerEvent) => { const rect = canvas.getBoundingClientRect(); pointer = { x:event.clientX - rect.left, y:event.clientY - rect.top } }; const leave = () => { pointer = { x:-1000, y:-1000 } }
+    resize(); draw(); window.addEventListener('resize', resize); canvas.addEventListener('pointermove', move); canvas.addEventListener('pointerleave', leave)
+    return () => { cancelAnimationFrame(animation); window.removeEventListener('resize', resize); canvas.removeEventListener('pointermove', move); canvas.removeEventListener('pointerleave', leave) }
+  }, [lines])
+  return <div className="hero-particle-title" ref={wrapRef}><canvas ref={canvasRef} aria-hidden="true"/><h1>{lines.map((line, index) => <span className={index === lines.length - 1 ? 'accent' : ''} key={line}>{line}{index < lines.length - 1 && <br/>}</span>)}</h1></div>
+}
+
 function Hero() {
-  const { lang } = useI18n()
+  const { lang, locale } = useI18n()
   const heroRef = useRef<HTMLElement | null>(null)
   const glowRef = useRef<HTMLDivElement | null>(null)
 
@@ -98,7 +134,7 @@ function Hero() {
         y: initial.height * .38,
         xPercent: -50,
         yPercent: -50,
-        opacity: canHover && !reduceMotion ? .58 : .34
+        opacity: .8
       })
 
       if (!canHover || reduceMotion) return
@@ -116,7 +152,7 @@ function Hero() {
         fade(.8)
       }
       const onPointerOut = (event: PointerEvent) => {
-        if (!event.relatedTarget) fade(.46)
+        if (!event.relatedTarget) fade(.8)
       }
 
       window.addEventListener('pointermove', onPointerMoveWithFade, { passive: true })
@@ -134,7 +170,7 @@ function Hero() {
 
   return <section ref={heroRef} id="الرئيسية" className="hero hero-3d">
     <div ref={glowRef} className="hero-mouse-glow" aria-hidden="true" />
-    <div className="hero-copy"><div className="eyebrow top"><span/> {lang.hero.eyebrow}</div><h1>{lang.hero.title}<br/><em>{lang.hero.titleAccent}</em></h1><p>{lang.hero.description}</p><div className="hero-actions"><Button href="#الاشتراك">{lang.nav.start}</Button><Button secondary>{lang.reference.cta}</Button></div><div className="designed"><ShieldCheck size={17}/> {lang.hero.designed}</div></div>
+    <div className="hero-copy"><div className="eyebrow top"><span/> {lang.hero.eyebrow}</div><HeroParticleTitle lines={locale === 'ar' ? ['حوّل', 'مستنداتك', 'القانونية إلى', 'قرارات أكثر', 'ذكاءً.'] : [lang.hero.title, lang.hero.titleAccent]}/><p>{lang.hero.description}</p><div className="hero-actions"><Button href="#الاشتراك">{lang.nav.start}</Button><Button secondary>{lang.reference.cta}</Button></div><div className="designed"><ShieldCheck size={17}/> {lang.hero.designed}</div></div>
     <ReferenceHeroVisual />
   </section>
 }
@@ -204,6 +240,33 @@ function RevealSection({ children, className, id }: { children: React.ReactNode,
     return () => observer.disconnect()
   }, [])
   return <section id={id} ref={ref} className={`${className} reveal-section ${visible ? 'is-visible' : ''}`}>{children}</section>
+}
+
+function EgyptianLawLibrary() {
+  const [start, setStart] = useState(0)
+  const books = [
+    ['القانون المدني', 'أصول الالتزامات والعقود', 'sand'],
+    ['قانون العقوبات', 'القسم العام والخاص', 'ink'],
+    ['القانون التجاري', 'الشركات والأعمال', 'wine'],
+    ['قانون المرافعات', 'إجراءات التقاضي', 'olive'],
+    ['قانون العمل', 'حقوق العامل وصاحب العمل', 'blue'],
+    ['القانون الإداري', 'مبادئ المشروعية', 'clay'],
+    ['الدستور المصري', 'مبادئ ونصوص دستورية', 'night']
+  ]
+  useEffect(() => {
+    const timer = window.setInterval(() => setStart(value => (value + 1) % books.length), 3000)
+    return () => window.clearInterval(timer)
+  }, [books.length])
+  const visibleBooks = Array.from({ length: 4 }, (_, offset) => books[(start + offset) % books.length])
+  return <section className="egyptian-law-library" id="المكتبة">
+    <div className="law-library-heading"><span className="eyebrow">المكتبة القانونية المصرية</span><h2>مراجع القانون المصري</h2><p>مجموعة مختارة من أهم القوانين والمراجع التي يحتاجها فريقك القانوني.</p></div>
+    <div className="law-books-carousel">
+      <button className="law-books-arrow previous" type="button" aria-label="الكتب السابقة" onClick={() => setStart(value => (value - 1 + books.length) % books.length)}>←</button>
+      <div className="law-books-track">{visibleBooks.map(([title, subtitle, tone], index) => <article className="law-book" data-tone={tone} key={`${title}-${start}-${index}`}><div className="law-book-spine"/><div className="law-book-cover"><span className="law-book-mark">القانون المصري</span><strong>{title}</strong><small>{subtitle}</small><i>م</i></div></article>)}</div>
+      <button className="law-books-arrow next" type="button" aria-label="الكتب التالية" onClick={() => setStart(value => (value + 1) % books.length)}>→</button>
+    </div>
+    <div className="law-books-dots" aria-hidden="true">{books.slice(0, 5).map((_, index) => <span className={index === start % 5 ? 'active' : ''} key={index}/>)}</div>
+  </section>
 }
 
 function ReferenceScrollVisuals() {
@@ -516,5 +579,5 @@ export default function App() {
   useEffect(() => { const syncPlans = () => { const hash = decodeURIComponent(window.location.hash.slice(1)); setPlansOpen(hash === 'الاشتراك') }; syncPlans(); window.addEventListener('hashchange', syncPlans); return () => window.removeEventListener('hashchange', syncPlans) }, [])
   useEffect(() => { document.body.style.overflow = plansOpen || aiOpen ? 'hidden' : ''; return () => { document.body.style.overflow = '' } }, [plansOpen, aiOpen])
   const closePlans = () => { setPlansOpen(false); if (decodeURIComponent(window.location.hash.slice(1)) === 'الاشتراك') window.history.pushState({}, '', '#الرئيسية') }
-  return <><a className="skip" href="#main">{lang.a11y.skip}</a><Nav/><main id="main" ref={motionScope}><Hero/><Trust/><ReferenceScrollVisuals/><Workflow/><Problems/><Features/><ProductShowcase/><AnalysisShowcase/><AssistantShowcase/><Security/><Steps/><FAQ/><CTA/></main><GavelChatTrigger floating onOpen={() => setAiOpen(true)}/><SubscriptionPlans open={plansOpen} onClose={closePlans} onStartTrial={() => { closePlans(); setAiOpen(true) }}/><AIWorkspace open={aiOpen} onClose={() => setAiOpen(false)}/><Footer/></>
+  return <><a className="skip" href="#main">{lang.a11y.skip}</a><Nav/><main id="main" ref={motionScope}><Hero/><Trust/><EgyptianLawLibrary/><ReferenceScrollVisuals/><Workflow/><Problems/><Features/><ProductShowcase/><AnalysisShowcase/><AssistantShowcase/><Security/><Steps/><FAQ/><CTA/></main><GavelChatTrigger floating onOpen={() => setAiOpen(true)}/><SubscriptionPlans open={plansOpen} onClose={closePlans} onStartTrial={() => { closePlans(); setAiOpen(true) }}/><AIWorkspace open={aiOpen} onClose={() => setAiOpen(false)}/><Footer/></>
 }
