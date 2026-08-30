@@ -16,7 +16,30 @@ type RobotBones = {
 }
 
 const ROBOT_MODEL_URL = '/models/legal-robot-rigged.glb?v=1'
+const SANAD_ENVIRONMENT_URL = '/models/sanad-environment.glb?v=1'
 const FINGER_NAMES = ['Index', 'Middle', 'Ring', 'Pinky'] as const
+const PLATFORM_WIDTH_SCALE = 0.78
+
+function SanadEnvironment() {
+  const gltf = useGLTF(SANAD_ENVIRONMENT_URL)
+  const environment = useMemo(() => {
+    const scene = gltf.scene.clone(true)
+    // The page owns the continuous backdrop gradient. Hiding the exported
+    // cyclorama avoids exposing the GLB as a separate dark rectangle.
+    scene.getObjectByName('SANAD_Backdrop')?.traverse(object => { object.visible = false })
+    // The hero is much wider on large screens than it is tall. Narrowing only
+    // the stage platform keeps its rings visually round instead of stretched,
+    // without affecting the mascot's proportions or its ground alignment.
+    scene.traverse(object => {
+      if (object.name.startsWith('SANAD_Platform')) object.scale.x *= PLATFORM_WIDTH_SCALE
+    })
+    return scene
+  }, [gltf.scene])
+
+  // Keep the platform top at the robot's existing ground plane while scaling
+  // the environment to frame the mascot rather than overpower it.
+  return <primitive object={environment} position={[0, -1.58, 0]} scale={0.52} />
+}
 
 function RobotModel({ reduced, onReady }: { reduced: boolean; onReady: () => void }) {
   const gltf = useGLTF(ROBOT_MODEL_URL)
@@ -147,8 +170,10 @@ function RobotModel({ reduced, onReady }: { reduced: boolean; onReady: () => voi
 }
 
 export function LegalRobotHero({ reduced = false, onReady }: { reduced?: boolean; onReady?: () => void }) {
+  const canvasRef = useRef<HTMLDivElement | null>(null)
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(reduced)
   const [modelReady, setModelReady] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
   const handleReady = useCallback(() => {
     setModelReady(true)
     onReady?.()
@@ -162,19 +187,38 @@ export function LegalRobotHero({ reduced = false, onReady }: { reduced?: boolean
     return () => media.removeEventListener('change', update)
   }, [reduced])
 
-  return <div className="legal-robot-canvas" data-model-ready={modelReady ? 'true' : 'false'} aria-hidden="true">
-    <Canvas dpr={[1, 1.3]} camera={{ position: [0, 0.05, 5.7], fov: 34 }} gl={{ antialias: false, alpha: true, powerPreference: 'high-performance' }}>
+  useEffect(() => {
+    const node = canvasRef.current
+    if (!node || !('IntersectionObserver' in window)) return
+    const observer = new IntersectionObserver(([entry]) => setIsVisible(entry.isIntersecting), { rootMargin: '180px 0px' })
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
+
+  const shouldAnimate = isVisible && !prefersReducedMotion
+
+  return <div ref={canvasRef} className="legal-robot-canvas" data-model-ready={modelReady ? 'true' : 'false'} aria-hidden="true">
+    <Canvas
+      frameloop={shouldAnimate ? 'always' : 'demand'}
+      dpr={[1, 2]}
+      camera={{ position: [0, 0.05, 7.05], fov: 33 }}
+      gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
+      onCreated={({ gl, scene }) => { scene.background = null; gl.setClearColor(0x000000, 0) }}
+    >
       <Suspense fallback={null}>
-        <ambientLight intensity={0.76} />
-        <directionalLight position={[3, 5, 4]} intensity={1.65} color="#fff0d6" />
-        <pointLight position={[-3, 1.5, 3]} intensity={4.4} color="#c48035" />
-        <pointLight position={[2.5, 2.8, -2]} intensity={3.6} color="#f1b764" />
-        <RobotModel reduced={prefersReducedMotion} onReady={handleReady} />
-        <ContactShadows position={[0, -1.48, 0]} opacity={0.34} scale={4.8} blur={2.8} far={3.6} color="#3a1f10" frames={1} resolution={256} />
-        {!prefersReducedMotion && <Sparkles count={18} scale={[3.8, 3.5, 2]} size={1.2} speed={0.18} color="#dba65b" />}
+        <SanadEnvironment />
+        <ambientLight intensity={0.48} />
+        <directionalLight position={[3, 5, 4]} intensity={1.28} color="#fff0d6" />
+        <pointLight position={[0, -1.16, 1.85]} intensity={7.2} distance={6.5} decay={1.7} color="#efad58" />
+        <pointLight position={[-3, 1.5, 3]} intensity={2.6} color="#c9965d" />
+        <pointLight position={[2.5, 2.8, -2]} intensity={2.2} color="#f1c27a" />
+        <RobotModel reduced={!shouldAnimate} onReady={handleReady} />
+        <ContactShadows position={[0, -1.45, 0]} opacity={0.24} scale={5.8} blur={2.8} far={3.8} color="#120a05" frames={1} resolution={256} />
+        {shouldAnimate && <Sparkles count={18} scale={[3.8, 3.5, 2]} size={1.2} speed={0.18} color="#dba65b" />}
       </Suspense>
     </Canvas>
   </div>
 }
 
 useGLTF.preload(ROBOT_MODEL_URL)
+useGLTF.preload(SANAD_ENVIRONMENT_URL)

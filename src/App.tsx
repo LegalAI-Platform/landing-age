@@ -27,16 +27,57 @@ class GuestAIError extends Error { constructor(public status: number, message: s
 const guestId = () => typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`
 const guestTime = () => new Intl.DateTimeFormat('ar-EG', { timeStyle: 'short' }).format(new Date())
 
-const LegalAIHeroScene = lazy(() => import('./components/3d/LegalAIHeroScene').then(module => ({ default: module.LegalAIHeroScene })))
-const LegalProductScene = lazy(() => import('./components/3d/LegalAIHeroScene').then(module => ({ default: module.LegalProductScene })))
-const SecurityScene = lazy(() => import('./components/3d/LegalAIHeroScene').then(module => ({ default: module.SecurityScene })))
 const AIAssistantImage = lazy(() => import('./components/AIAssistantImage').then(module => ({ default: module.AIAssistantImage })))
-function SceneLoader({ children }: { children: React.ReactNode }) { return <Suspense fallback={<div className="scene-skeleton" aria-hidden="true" />}>{children}</Suspense> }
+
+function useInViewport<T extends Element>(rootMargin = '180px 0px', initialValue = true) {
+  const ref = useRef<T | null>(null)
+  const [isVisible, setIsVisible] = useState(initialValue)
+
+  useEffect(() => {
+    const node = ref.current
+    if (!node) return
+    if (!('IntersectionObserver' in window)) {
+      setIsVisible(true)
+      return
+    }
+
+    const observer = new IntersectionObserver(([entry]) => setIsVisible(entry.isIntersecting), { rootMargin })
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [rootMargin])
+
+  return [ref, isVisible] as const
+}
 
 function Logo() { const { lang, locale } = useI18n(); return <a className="logo" href="#الرئيسية" aria-label={lang.brand.homeAria}><span className="logo-image-wrap"><img src="/sanad-logo.jpg" alt={lang.brand.logoAlt} /></span><span className="brand-name" lang={locale}>{lang.brand.name}</span></a> }
 
 function Button({ children, secondary = false, href = '#ابدأ' }: { children: React.ReactNode, secondary?: boolean, href?: string }) {
   return <a href={href} className={`button ${secondary ? 'button-secondary' : ''}`}>{children}{!secondary && <ArrowLeft size={17} aria-hidden="true" />}</a>
+}
+
+function ProofAvatarGroup({ items }: { items: React.ReactNode[] }) {
+  const rootRef = useRef<HTMLDivElement | null>(null)
+
+  const setShifts = (activeIndex: number | null, phase: 'in' | 'out') => {
+    const avatars = rootRef.current?.querySelectorAll<HTMLElement>('.t-avatar')
+    if (!avatars) return
+    const timing = phase === 'out' ? 'cubic-bezier(.34, 3.85, .64, 1)' : 'cubic-bezier(.22, 1, .36, 1)'
+    avatars.forEach((avatar, index) => {
+      avatar.style.transitionTimingFunction = timing
+      if (activeIndex === null) {
+        avatar.style.setProperty('--shift', '0px')
+        avatar.style.setProperty('--scale-active', '1')
+        return
+      }
+      const distance = Math.abs(index - activeIndex)
+      avatar.style.setProperty('--shift', `${(-4 * Math.pow(.45, distance)).toFixed(3)}px`)
+      avatar.style.setProperty('--scale-active', index === activeIndex ? '1.08' : '1')
+    })
+  }
+
+  return <div ref={rootRef} className="proof-avatar-group" aria-hidden="true" onMouseLeave={() => setShifts(null, 'out')}>
+    {items.map((item, index) => <span className="t-avatar" key={index} onMouseEnter={() => setShifts(index, 'in')}>{item}</span>)}
+  </div>
 }
 
 function Nav() {
@@ -74,22 +115,28 @@ function ReferenceHeroVisual() {
   return <div className="reference-visual" role="img" aria-label={lang.reference.aria}>
     <div className="reference-glow" />
     <LegalRobotHero />
-    <span className="reference-scan" aria-hidden="true" />
-    <span className="reference-pulse pulse-one" aria-hidden="true" />
-    <span className="reference-pulse pulse-two" aria-hidden="true" />
-    <div className="reference-status"><span className="status-dot" /> {lang.reference.status}</div>
   </div>
 }
 
-function HeroParticleTitle({ lines }: { lines: string[] }) {
+function HeroParticleTitle({ lines, active }: { lines: string[], active: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const wrapRef = useRef<HTMLDivElement | null>(null)
+  const activeRef = useRef(active)
+  const resumeRef = useRef<() => void>(() => {})
+  const linesKey = lines.join('\u0000')
+
+  useEffect(() => {
+    activeRef.current = active
+    if (active) resumeRef.current()
+  }, [active])
+
   useEffect(() => {
     const canvas = canvasRef.current; const wrap = wrapRef.current
     if (!canvas || !wrap) return
     const ctx = canvas.getContext('2d'); const sample = document.createElement('canvas'); const sampleCtx = sample.getContext('2d')
     if (!ctx || !sampleCtx) return
-    let animation = 0; let particles: { x:number; y:number; tx:number; ty:number; vx:number; vy:number; accent:boolean }[] = []; let pointer = { x:-1000, y:-1000 }
+    type Particle = { x:number; y:number; tx:number; ty:number; vx:number; vy:number; accent:boolean; alpha:number; radius:number }
+    let animation = 0; let particles: Particle[] = []; let pointer = { x:-1000, y:-1000 }
     const resize = () => {
       const rect = wrap.getBoundingClientRect(); const ratio = Math.min(window.devicePixelRatio || 1, 2); const width = Math.max(1, Math.floor(rect.width)); const height = Math.max(1, Math.floor(rect.height))
       canvas.width = width * ratio; canvas.height = height * ratio; canvas.style.width = `${width}px`; canvas.style.height = `${height}px`; ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
@@ -98,21 +145,23 @@ function HeroParticleTitle({ lines }: { lines: string[] }) {
       const wrapText = (value: string) => { const words = value.trim().split(/\s+/); const result: string[] = []; let line = ''; for (const word of words) { const candidate = line ? `${word} ${line}` : word; if (line && sampleCtx.measureText(candidate).width > width * .98) { result.push(line); line = word } else line = candidate } if (line) result.push(line); return result }
       const renderedLines = lines.flatMap(line => wrapText(line)); const lineHeight = fontSize * 1.08; const firstBaseline = (height - renderedLines.length * lineHeight) / 2 + fontSize
       renderedLines.forEach((line, index) => { sampleCtx.fillStyle = '#000'; sampleCtx.fillText(line, width * .98, firstBaseline + index * lineHeight) })
-      const data = sampleCtx.getImageData(0, 0, width, height).data; const next: typeof particles = []
-      for (let y = 0; y < height; y += 3) for (let x = 0; x < width; x += 3) if (data[(y * width + x) * 4 + 3] > 100) next.push({ x:x + (Math.random() - .5) * 18, y:y + (Math.random() - .5) * 18, tx:x, ty:y, vx:0, vy:0, accent:y > firstBaseline + Math.max(0, renderedLines.length - 2) * lineHeight })
+      const data = sampleCtx.getImageData(0, 0, width, height).data; const next: Particle[] = []
+      const accentStart = firstBaseline + (renderedLines.length - 1) * lineHeight - fontSize
+      for (let y = 0; y < height; y += 3) for (let x = 0; x < width; x += 3) if (data[(y * width + x) * 4 + 3] > 100) next.push({ x:x + (Math.random() - .5) * 14, y:y + (Math.random() - .5) * 14, tx:x, ty:y, vx:0, vy:0, accent:y >= accentStart, alpha:.93 + Math.random() * .07, radius:1.36 + Math.random() * .72 })
       particles = next
     }
-    const draw = () => { const rect = wrap.getBoundingClientRect(); const dark = document.documentElement.dataset.theme === 'dark'; ctx.clearRect(0, 0, rect.width, rect.height); for (const p of particles) { const dx = p.tx - p.x; const dy = p.ty - p.y; const mx = p.x - pointer.x; const my = p.y - pointer.y; const distance = Math.hypot(mx, my); if (distance < 110) { const force = (110 - distance) / 110; p.vx += (mx / (distance || 1)) * force * .75; p.vy += (my / (distance || 1)) * force * .75 } p.vx += dx * .012; p.vy += dy * .012; p.vx *= .88; p.vy *= .88; p.x += p.vx; p.y += p.vy; ctx.fillStyle = dark ? (p.accent ? `rgba(226,190,125,${.86 + Math.random() * .14})` : `rgba(255,239,207,${.82 + Math.random() * .16})`) : (p.accent ? `rgba(166,113,38,${.86 + Math.random() * .14})` : `rgba(61,39,27,${.82 + Math.random() * .16})`); ctx.beginPath(); ctx.arc(p.x, p.y, 1.35 + Math.random() * 1.1, 0, Math.PI * 2); ctx.fill() } animation = requestAnimationFrame(draw) }
+    const draw = () => { animation = 0; if (!activeRef.current) return; const rect = wrap.getBoundingClientRect(); const dark = document.documentElement.dataset.theme === 'dark'; ctx.clearRect(0, 0, rect.width, rect.height); if (!dark) { ctx.save(); ctx.globalAlpha = .14; ctx.drawImage(sample, 0, 0); ctx.restore() } for (const p of particles) { const dx = p.tx - p.x; const dy = p.ty - p.y; const mx = p.x - pointer.x; const my = p.y - pointer.y; const distance = Math.hypot(mx, my); if (distance < 110) { const force = (110 - distance) / 110; p.vx += (mx / (distance || 1)) * force * .75; p.vy += (my / (distance || 1)) * force * .75 } p.vx += dx * .012; p.vy += dy * .012; p.vx *= .88; p.vy *= .88; p.x += p.vx; p.y += p.vy; ctx.fillStyle = dark ? (p.accent ? `rgba(247,190,96,${p.alpha})` : `rgba(255,244,222,${p.alpha})`) : (p.accent ? `rgba(209,135,43,${p.alpha})` : `rgba(61,35,18,${p.alpha})`); ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill() } animation = requestAnimationFrame(draw) }
+    const start = () => { if (!animation && activeRef.current) animation = requestAnimationFrame(draw) }
     const move = (event: PointerEvent) => { const rect = canvas.getBoundingClientRect(); pointer = { x:event.clientX - rect.left, y:event.clientY - rect.top } }; const leave = () => { pointer = { x:-1000, y:-1000 } }
-    resize(); draw(); window.addEventListener('resize', resize); canvas.addEventListener('pointermove', move); canvas.addEventListener('pointerleave', leave)
-    return () => { cancelAnimationFrame(animation); window.removeEventListener('resize', resize); canvas.removeEventListener('pointermove', move); canvas.removeEventListener('pointerleave', leave) }
-  }, [lines])
+    resize(); resumeRef.current = start; start(); window.addEventListener('resize', resize); canvas.addEventListener('pointermove', move); canvas.addEventListener('pointerleave', leave)
+    return () => { resumeRef.current = () => {}; cancelAnimationFrame(animation); window.removeEventListener('resize', resize); canvas.removeEventListener('pointermove', move); canvas.removeEventListener('pointerleave', leave) }
+  }, [linesKey])
   return <div className="hero-particle-title" ref={wrapRef}><canvas ref={canvasRef} aria-hidden="true"/><h1>{lines.map((line, index) => <span className={index === lines.length - 1 ? 'accent' : ''} key={line}>{line}{index < lines.length - 1 && <br/>}</span>)}</h1></div>
 }
 
 function Hero() {
   const { lang, locale } = useI18n()
-  const heroRef = useRef<HTMLElement | null>(null)
+  const [heroRef, heroVisible] = useInViewport<HTMLElement>('240px 0px')
   const glowRef = useRef<HTMLDivElement | null>(null)
 
   useGSAP(() => {
@@ -168,10 +217,17 @@ function Hero() {
     return () => media.revert()
   }, { scope: heroRef })
 
-  return <section ref={heroRef} id="الرئيسية" className="hero hero-3d">
+  return <section ref={heroRef} id="الرئيسية" className="hero hero-3d hero--robot-showcase">
     <div ref={glowRef} className="hero-mouse-glow" aria-hidden="true" />
-    <div className="hero-copy"><div className="eyebrow top"><span/> {lang.hero.eyebrow}</div><HeroParticleTitle lines={locale === 'ar' ? ['حوّل', 'مستنداتك', 'القانونية إلى', 'قرارات أكثر', 'ذكاءً.'] : [lang.hero.title, lang.hero.titleAccent]}/><p>{lang.hero.description}</p><div className="hero-actions"><Button href="#الاشتراك">{lang.nav.start}</Button><Button secondary>{lang.reference.cta}</Button></div><div className="designed"><ShieldCheck size={17}/> {lang.hero.designed}</div></div>
-    <ReferenceHeroVisual />
+    <div className="robot-showcase-stage">
+      <ReferenceHeroVisual />
+      <article className="robot-showcase-card robot-showcase-card--contracts"><FileText aria-hidden="true"/><div><strong>{lang.features.items[0][0]}</strong><small>{lang.features.items[0][1]}</small></div></article>
+      <article className="robot-showcase-card robot-showcase-card--assistant"><Bot aria-hidden="true"/><div><strong>{lang.features.items[1][0]}</strong><small>{lang.features.items[1][1]}</small></div></article>
+      <article className="robot-showcase-card robot-showcase-card--search"><Search aria-hidden="true"/><div><strong>{lang.features.items[4][0]}</strong><small>{lang.features.items[4][1]}</small></div></article>
+      <article className="robot-showcase-card robot-showcase-card--risk"><ShieldCheck aria-hidden="true"/><div><strong>{lang.features.items[3][0]}</strong><small>{lang.features.items[3][1]}</small></div></article>
+      <div className="robot-showcase-security"><ShieldCheck aria-hidden="true"/><span>{lang.hero.designed}</span><i aria-hidden="true"/></div>
+    </div>
+    <div className="hero-copy robot-showcase-copy"><div className="eyebrow top"><span/> {lang.hero.eyebrow}</div><HeroParticleTitle active={heroVisible} lines={locale === 'ar' ? ['حوّل', 'مستنداتك', 'القانونية إلى', 'قرارات أكثر', 'ذكاءً.'] : [lang.hero.title, lang.hero.titleAccent]}/><div className="hero-actions"><Button href="#الاشتراك">{lang.nav.start}</Button><Button secondary>{lang.reference.cta}</Button></div><div className="robot-showcase-proof"><ProofAvatarGroup items={[<span className="proof-avatar proof-avatar--woman"/>, <span className="proof-avatar proof-avatar--man"/>, <span className="proof-avatar proof-avatar--woman proof-avatar--woman-alt"/>, <span className="proof-avatar proof-avatar--count">+1k</span>]}/><small>{lang.hero.designed}</small></div></div>
   </section>
 }
 
@@ -284,7 +340,7 @@ function Workflow() {
 function Problems() { const { lang } = useI18n(); return <section className="section problem" id="كيف يعمل"><div className="section-intro"><span className="eyebrow">{lang.problems.eyebrow}</span><h2>{lang.problems.title}<br/>{lang.problems.title2}</h2><p>{lang.problems.text}</p></div><div className="problem-grid">{lang.problems.items.map((item,i) => <div className="problem-card" key={item}><span>0{i+1}</span><p>{item}</p><div className="line"/></div>)}</div></section> }
 
 function Features() {
-  const { lang } = useI18n()
+  const { lang, locale } = useI18n()
   const icons = [FileSearch, Bot, FileText, ShieldCheck, Search, LockKeyhole]
   const sectionRef = useRef<HTMLElement | null>(null)
 
@@ -301,64 +357,128 @@ function Features() {
       const reduceMotion = Boolean(context.conditions?.reduceMotion)
       const interactive = Boolean(context.conditions?.interactive)
 
-      if (!reduceMotion) {
-        gsap.from(cards, {
-          autoAlpha: 0,
-          y: 42,
-          rotationY: -5,
-          duration: .72,
-          stagger: { each: .07, from: 'start' },
-          ease: 'power3.out',
-          scrollTrigger: { trigger: section, start: 'top 78%', once: true }
-        })
-      }
-
       if (!interactive || reduceMotion) return
 
-      const controls = cards.map(card => ({
-        x: gsap.quickTo(card, 'x', { duration: .5, ease: 'power3.out' }),
-        y: gsap.quickTo(card, 'y', { duration: .5, ease: 'power3.out' }),
-        scale: gsap.quickTo(card, '--card-scale', { duration: .5, ease: 'power3.out' }),
-        rotationY: gsap.quickTo(card, 'rotationY', { duration: .5, ease: 'power3.out' })
+      const deck = section.querySelector<HTMLElement>('.feature-grid')
+      if (!deck) return
+      const cardTilts = [-4.5, 2.75, -3.5, 1.75, -2.5, 3.5]
+      const baseCardCenters = cards.map(card => {
+        const bounds = card.getBoundingClientRect()
+        return bounds.left + bounds.width / 2
+      })
+      gsap.set(cards, {
+        rotation: index => cardTilts[index] ?? 0,
+        transformOrigin: '50% 100%',
+        force3D: true
+      })
+      gsap.set(deck, { force3D: true })
+      let activeCardIndex = -1
+      let pointerPosition: { x: number, y: number } | null = null
+      const motion = { duration: .46, ease: 'power2.out' }
+      const deckXTo = gsap.quickTo(deck, 'x', motion)
+      const cardMotion = cards.map(card => ({
+        x: gsap.quickTo(card, 'x', motion),
+        y: gsap.quickTo(card, 'y', motion),
+        rotation: gsap.quickTo(card, 'rotation', motion),
+        rotationY: gsap.quickTo(card, 'rotationY', motion)
       }))
 
-      const resetDeck = () => cards.forEach((card, index) => {
-        controls[index].x(0)
-        controls[index].y(0)
-        controls[index].scale(1)
-        controls[index].rotationY(0)
-        card.style.zIndex = String(index + 1)
+      const activateCard = (activeIndex: number, immediate = false) => {
+        if (activeCardIndex === activeIndex && !immediate) return
+        activeCardIndex = activeIndex
+        const deckX = window.innerWidth / 2 - baseCardCenters[activeIndex]
+
+        cards.forEach((card, index) => {
+          const distance = index - activeIndex
+          const direction = Math.sign(distance)
+          const isActive = distance === 0
+          const x = isActive ? 0 : direction * -18
+          const y = isActive ? -30 : Math.min(12, Math.abs(distance) * 3)
+          const rotation = isActive ? 0 : cardTilts[index]
+          const rotationY = isActive ? 0 : direction * -3.25
+          card.dataset.active = String(isActive)
+          card.style.zIndex = isActive ? '30' : String(20 - Math.abs(distance))
+          card.style.setProperty('--card-scale', String(isActive ? 1.075 : Math.max(.94, .985 - Math.abs(distance) * .012)))
+          if (immediate) {
+            gsap.set(card, { x, y, rotation, rotationY, force3D: true })
+            return
+          }
+          cardMotion[index].x(x)
+          cardMotion[index].y(y)
+          cardMotion[index].rotation(rotation)
+          cardMotion[index].rotationY(rotationY)
+        })
+
+        if (immediate) {
+          gsap.set(deck, { x: deckX, force3D: true })
+        } else {
+          deckXTo(deckX)
+        }
+      }
+
+      const initialIndex = Math.floor(cards.length / 2)
+      activateCard(initialIndex, true)
+      const resetDeck = () => activateCard(initialIndex)
+      // Card elements overlap and the deck translates while an item is coming
+      // forward. Capture their resting positions once so the hover target stays
+      // stable throughout the transition instead of changing beneath the cursor.
+      const restingCardBounds = cards.map(card => {
+        const bounds = card.getBoundingClientRect()
+        return {
+          left: bounds.left,
+          right: bounds.right,
+          top: bounds.top + window.scrollY,
+          bottom: bounds.bottom + window.scrollY,
+          center: bounds.left + bounds.width / 2
+        }
       })
-      const activateCard = (activeIndex: number) => cards.forEach((card, index) => {
-        const distance = index - activeIndex
-        const direction = Math.sign(distance)
-        controls[index].x(distance === 0 ? 0 : direction * -20)
-        controls[index].y(distance === 0 ? -28 : Math.min(10, Math.abs(distance) * 3))
-        controls[index].scale(distance === 0 ? 1.065 : Math.max(.94, .982 - Math.abs(distance) * .012))
-        controls[index].rotationY(distance === 0 ? 0 : direction * -3.5)
-        card.style.zIndex = distance === 0 ? '30' : String(20 - Math.abs(distance))
-      })
+      const deckHitBounds = {
+        left: Math.min(...restingCardBounds.map(bounds => bounds.left)) - 20,
+        right: Math.max(...restingCardBounds.map(bounds => bounds.right)) + 20,
+        top: Math.min(...restingCardBounds.map(bounds => bounds.top)) - 16,
+        bottom: Math.max(...restingCardBounds.map(bounds => bounds.bottom)) + 16
+      }
+      const cardAtPointer = (x: number, y: number) => {
+        const pageY = y + window.scrollY
+        if (x < deckHitBounds.left || x > deckHitBounds.right || pageY < deckHitBounds.top || pageY > deckHitBounds.bottom) return -1
+        return restingCardBounds.reduce((closestIndex, bounds, index) => {
+          return Math.abs(bounds.center - x) < Math.abs(restingCardBounds[closestIndex].center - x) ? index : closestIndex
+        }, 0)
+      }
 
       const listeners = cards.map((card, index) => {
         const activate = () => activateCard(index)
-        card.addEventListener('pointerenter', activate, { passive: true })
         card.addEventListener('focusin', activate)
         return { card, activate }
       })
-      const onFocusOut = (event: FocusEvent) => {
-        if (!section.contains(event.relatedTarget as Node | null)) resetDeck()
+      const handleDeckPointerMove = (event: PointerEvent) => {
+        const didPointerMove = !pointerPosition || pointerPosition.x !== event.clientX || pointerPosition.y !== event.clientY
+        pointerPosition = { x: event.clientX, y: event.clientY }
+        if (!didPointerMove) return
+        const hoveredIndex = cardAtPointer(event.clientX, event.clientY)
+        if (hoveredIndex < 0) {
+          resetDeck()
+          return
+        }
+        activateCard(hoveredIndex)
       }
-      section.addEventListener('pointerleave', resetDeck, { passive: true })
-      section.addEventListener('focusout', onFocusOut)
-      resetDeck()
+      const handleDeckPointerLeave = () => {
+        pointerPosition = null
+        resetDeck()
+      }
+      // The deck itself translates to centre the selected card. Listen on the
+      // stationary section instead, otherwise that translation can fire a false
+      // pointerleave when the mouse is still over a left/right card.
+      section.addEventListener('pointermove', handleDeckPointerMove, { passive: true })
+      section.addEventListener('pointerleave', handleDeckPointerLeave, { passive: true })
 
       return () => {
         listeners.forEach(({ card, activate }) => {
-          card.removeEventListener('pointerenter', activate)
           card.removeEventListener('focusin', activate)
         })
-        section.removeEventListener('pointerleave', resetDeck)
-        section.removeEventListener('focusout', onFocusOut)
+        section.removeEventListener('pointermove', handleDeckPointerMove)
+        section.removeEventListener('pointerleave', handleDeckPointerLeave)
+        gsap.killTweensOf(deck)
         gsap.killTweensOf(cards)
       }
     }, section)
@@ -366,10 +486,26 @@ function Features() {
     return () => media.revert()
   }, { scope: sectionRef })
 
-  return <section ref={sectionRef} className="section features" id="المميزات"><div className="section-intro centered"><span className="eyebrow">{lang.features.eyebrow}</span><h2>{lang.features.title}<br/>{lang.features.title2}</h2></div><div className="feature-grid">{lang.features.items.map(([title,text], index) => { const Icon = icons[index]; return <article className="feature" key={title}><div className="feature-surface"><div className="feature-icon"><Icon size={22}/></div><h3>{title}</h3><p>{text}</p><a href="#ابدأ">{lang.features.explore} <ArrowLeft size={15}/></a></div></article>})}</div></section>
+  return <section ref={sectionRef} className="section features" id="المميزات"><div className="section-intro centered"><span className="eyebrow">{lang.features.eyebrow}</span><h2>{lang.features.title}<br/>{lang.features.title2}</h2></div><div className="feature-grid">{lang.features.items.map(([title,text], index) => { const Icon = icons[index]; return <article className="feature" dir={locale === 'ar' ? 'rtl' : 'ltr'} key={title}><div className="feature-surface"><div className="feature-head"><div className="feature-icon"><Icon size={22}/></div><span className="feature-service-label">{locale === 'ar' ? 'خدمات سَنَد' : 'SANAD SERVICE'}</span></div><Icon className="feature-mark" size={142} strokeWidth={1.15} aria-hidden="true"/><div className="feature-copy"><span className="feature-rule"/><h3>{title}</h3><p>{text}</p><a href="#ابدأ">{lang.features.explore} <ArrowLeft size={15}/></a></div></div></article>})}</div></section>
 }
 
-function ProductShowcase() { const { lang, locale } = useI18n(); return <section className="section product-showcase"><div className="product-showcopy"><span className="eyebrow">{lang.product.eyebrow}</span><h2>{lang.product.title}<br/>{lang.product.title2}</h2><p>{lang.product.text}</p><div className="showcase-stats"><span><b>{locale === 'ar' ? '٤' : '4'}</b> {lang.product.stats[0]}</span><span><b>{locale === 'ar' ? 'متوسط' : 'Medium'}</b> {lang.product.stats[1]}</span></div><Button secondary>{lang.reference.laptopCta}</Button></div><div className="product-3d-shell"><video className="product-demo-video" autoPlay muted loop playsInline preload="metadata" aria-label={lang.product.aria}><source src="/create-video-demo.mp4" type="video/mp4" /></video><div className="product-status"><span className="status-dot"/> {lang.product.status}</div><div className="product-clause">{lang.product.clause} <b>{lang.product.needsReview}</b></div></div></section> }
+function ProductShowcase() {
+  const { lang, locale } = useI18n()
+  const [sectionRef, isVisible] = useInViewport<HTMLElement>('240px 0px', false)
+  const videoRef = useRef<HTMLVideoElement | null>(null)
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+    if (!isVisible) {
+      video.pause()
+      return
+    }
+    void video.play().catch(() => {})
+  }, [isVisible])
+
+  return <section ref={sectionRef} className="section product-showcase"><div className="product-showcopy"><span className="eyebrow">{lang.product.eyebrow}</span><h2>{lang.product.title}<br/>{lang.product.title2}</h2><p>{lang.product.text}</p><div className="showcase-stats"><span><b>{locale === 'ar' ? '٤' : '4'}</b> {lang.product.stats[0]}</span><span><b>{locale === 'ar' ? 'متوسط' : 'Medium'}</b> {lang.product.stats[1]}</span></div><Button secondary>{lang.reference.laptopCta}</Button></div><div className="product-3d-shell"><video ref={videoRef} className="product-demo-video" muted loop playsInline preload="metadata" aria-label={lang.product.aria}><source src="/create-video-demo.mp4" type="video/mp4" /></video><div className="product-status"><span className="status-dot"/> {lang.product.status}</div><div className="product-clause">{lang.product.clause} <b>{lang.product.needsReview}</b></div></div></section>
+}
 
 function AnalysisShowcase() { const { lang } = useI18n(); return <section className="section showcase"><div className="showcase-copy"><span className="eyebrow">{lang.analysis.eyebrow}</span><h2>{lang.analysis.title}</h2><p>{lang.analysis.text}</p><ul>{lang.analysis.bullets.map(item => <li key={item}><Check/> {item}</li>)}</ul><Button secondary>{lang.analysis.cta}</Button></div><div className="analysis-card"><div className="analysis-title"><FileText size={18}/><b>{lang.analysis.review}</b><span>{lang.analysis.analyzed}</span></div><div className="clause"><span>{lang.analysis.clauseNo}</span><p>{lang.analysis.clause}</p></div><div className="risk"><div><i/><span><b>{lang.analysis.risk}</b><small>{lang.analysis.ceiling}</small></span></div><button>{lang.analysis.recommendation} <ArrowLeft size={14}/></button></div><div className="analysis-note"><Sparkles size={16}/><p><b>{lang.analysis.noteTitle}</b>{lang.analysis.note}</p></div></div></section> }
 
@@ -557,15 +693,10 @@ export default function App() {
       mediaContext = gsap.matchMedia()
       mediaContext.add('(min-width: 701px)', () => {
         gsap.to('.reference-visual', {
-          yPercent: -6,
-          ease: 'none',
-          scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.7 }
-        })
-        gsap.to('.workflow-orbit', {
-          yPercent: -10,
-          rotate: 4,
-          ease: 'none',
-          scrollTrigger: { trigger: '.workflow', start: 'top bottom', end: 'bottom top', scrub: 0.7 }
+          yPercent: -4,
+          duration: .8,
+          ease: 'power1.out',
+          scrollTrigger: { trigger: '.hero', start: 'top top', toggleActions: 'play reverse play reverse' }
         })
       })
     }, scope)
