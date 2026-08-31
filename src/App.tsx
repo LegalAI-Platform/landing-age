@@ -299,29 +299,33 @@ function RevealSection({ children, className, id }: { children: React.ReactNode,
 }
 
 function EgyptianLawLibrary() {
-  const [start, setStart] = useState(0)
+  const [activeIndex, setActiveIndex] = useState(2)
   const books = [
-    ['القانون المدني', 'أصول الالتزامات والعقود', 'sand'],
-    ['قانون العقوبات', 'القسم العام والخاص', 'ink'],
-    ['القانون التجاري', 'الشركات والأعمال', 'wine'],
-    ['قانون المرافعات', 'إجراءات التقاضي', 'olive'],
-    ['قانون العمل', 'حقوق العامل وصاحب العمل', 'blue'],
-    ['القانون الإداري', 'مبادئ المشروعية', 'clay'],
-    ['الدستور المصري', 'مبادئ ونصوص دستورية', 'night']
+    { id: 'civil', title: 'القانون المدني', subtitle: 'أصول الالتزامات والعقود', tone: 'sand' },
+    { id: 'criminal', title: 'قانون العقوبات', subtitle: 'القسم العام والخاص', tone: 'ink' },
+    { id: 'commercial', title: 'القانون التجاري', subtitle: 'الشركات والأعمال', tone: 'wine' },
+    { id: 'procedural', title: 'قانون المرافعات', subtitle: 'إجراءات التقاضي', tone: 'olive' },
+    { id: 'labor', title: 'قانون العمل', subtitle: 'حقوق العامل وصاحب العمل', tone: 'blue' },
+    { id: 'administrative', title: 'القانون الإداري', subtitle: 'مبادئ المشروعية', tone: 'clay' },
+    { id: 'constitution', title: 'الدستور المصري', subtitle: 'مبادئ ونصوص دستورية', tone: 'night' }
   ]
-  useEffect(() => {
-    const timer = window.setInterval(() => setStart(value => (value + 1) % books.length), 3000)
-    return () => window.clearInterval(timer)
-  }, [books.length])
-  const visibleBooks = Array.from({ length: 4 }, (_, offset) => books[(start + offset) % books.length])
+  const normalizeIndex = (index: number) => (index + books.length) % books.length
+  const navigate = (direction: -1 | 1) => {
+    setActiveIndex(value => normalizeIndex(value + direction))
+  }
+  const activeBookId = books[activeIndex].id
+  const getCircularOffset = (bookIndex: number) => {
+    const forwardOffset = normalizeIndex(bookIndex - activeIndex)
+    return forwardOffset > Math.floor(books.length / 2) ? forwardOffset - books.length : forwardOffset
+  }
   return <section className="egyptian-law-library" id="المكتبة">
-    <div className="law-library-heading"><span className="eyebrow">المكتبة القانونية المصرية</span><h2>مراجع القانون المصري</h2><p>مجموعة مختارة من أهم القوانين والمراجع التي يحتاجها فريقك القانوني.</p></div>
-    <div className="law-books-carousel">
-      <button className="law-books-arrow previous" type="button" aria-label="الكتب السابقة" onClick={() => setStart(value => (value - 1 + books.length) % books.length)}>←</button>
-      <div className="law-books-track">{visibleBooks.map(([title, subtitle, tone], index) => <article className="law-book" data-tone={tone} key={`${title}-${start}-${index}`}><div className="law-book-spine"/><div className="law-book-cover"><span className="law-book-mark">القانون المصري</span><strong>{title}</strong><small>{subtitle}</small><i>م</i></div></article>)}</div>
-      <button className="law-books-arrow next" type="button" aria-label="الكتب التالية" onClick={() => setStart(value => (value + 1) % books.length)}>→</button>
+    <div className="law-library-heading"><span className="eyebrow">المكتبة القانونية المصرية</span><h2>أهم المراجع القانونية</h2><p>أهم المراجع التي يستند إليها مساعدك القانوني الذكي في فهم القانون والإجابة عن استفساراتك.</p></div>
+    <div className="law-books-carousel" role="region" aria-roledescription="carousel" aria-label="مراجع القانون المصري">
+      <button className="law-books-arrow previous" type="button" aria-label="الكتب السابقة" onClick={() => navigate(-1)}>←</button>
+      <div className="law-books-track">{books.map((book, index) => { const offset = getCircularOffset(index); return <article className={`law-book ${book.id === activeBookId ? 'is-active' : ''}`} data-position={offset} data-tone={book.tone} data-book-id={book.id} aria-hidden={Math.abs(offset) > 2 ? 'true' : undefined} aria-current={book.id === activeBookId ? 'true' : undefined} key={book.id}><div className="law-book-spine"/><div className="law-book-cover"><span className="law-book-mark">القانون المصري</span><strong>{book.title}</strong><small>{book.subtitle}</small><i>م</i></div></article> })}</div>
+      <button className="law-books-arrow next" type="button" aria-label="الكتب التالية" onClick={() => navigate(1)}>→</button>
     </div>
-    <div className="law-books-dots" aria-hidden="true">{books.slice(0, 5).map((_, index) => <span className={index === start % 5 ? 'active' : ''} key={index}/>)}</div>
+    <div className="law-books-dots" aria-hidden="true">{books.map(book => <span className={book.id === activeBookId ? 'active' : ''} key={book.id}/>)}</div>
   </section>
 }
 
