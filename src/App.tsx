@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import {
-  ArrowLeft, ArrowUpLeft, Bot, Check, ChevronDown, Copy, FileSearch, FileText,
-  Eye, EyeOff, KeyRound, LockKeyhole, Mail, Menu, Moon, Plus, RotateCcw, Search, Send, ShieldCheck, Sparkles, Square, Sun, Upload, UserRound, X, Zap
+  ArrowLeft, ArrowUpLeft, BookOpen, Bot, BriefcaseBusiness, Check, ChevronDown, Copy, FilePenLine, FileSearch, FileText,
+  Eye, EyeOff, KeyRound, Landmark, LockKeyhole, Mail, Menu, Moon, Plus, RotateCcw, Scale, ScrollText, Search, Send, ShieldCheck, Sparkles, Square, Sun, Upload, UserRound, X, Zap
 } from 'lucide-react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -118,7 +118,7 @@ function ReferenceHeroVisual() {
   </div>
 }
 
-function HeroParticleTitle({ lines, active }: { lines: string[], active: boolean }) {
+function HeroParticleTitle({ lines, active, accentWord, showLegalMark = false }: { lines: string[], active: boolean, accentWord?: string, showLegalMark?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const wrapRef = useRef<HTMLDivElement | null>(null)
   const activeRef = useRef(active)
@@ -133,21 +133,20 @@ function HeroParticleTitle({ lines, active }: { lines: string[], active: boolean
   useEffect(() => {
     const canvas = canvasRef.current; const wrap = wrapRef.current
     if (!canvas || !wrap) return
-    const ctx = canvas.getContext('2d'); const sample = document.createElement('canvas'); const sampleCtx = sample.getContext('2d')
-    if (!ctx || !sampleCtx) return
+    const ctx = canvas.getContext('2d'); const sample = document.createElement('canvas'); const sampleCtx = sample.getContext('2d'); const accentSample = document.createElement('canvas'); const accentCtx = accentSample.getContext('2d')
+    if (!ctx || !sampleCtx || !accentCtx) return
     type Particle = { x:number; y:number; tx:number; ty:number; vx:number; vy:number; accent:boolean; alpha:number; radius:number }
     let animation = 0; let particles: Particle[] = []; let pointer = { x:-1000, y:-1000 }
     const resize = () => {
       const rect = wrap.getBoundingClientRect(); const ratio = Math.min(window.devicePixelRatio || 1, 2); const width = Math.max(1, Math.floor(rect.width)); const height = Math.max(1, Math.floor(rect.height))
       canvas.width = width * ratio; canvas.height = height * ratio; canvas.style.width = `${width}px`; canvas.style.height = `${height}px`; ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
-      sample.width = width; sample.height = height; sampleCtx.clearRect(0, 0, width, height); sampleCtx.direction = 'rtl'; sampleCtx.textAlign = 'center'; sampleCtx.textBaseline = 'middle'
-      const titleStyle = getComputedStyle(wrap.querySelector('h1') as HTMLElement); const fontSize = parseFloat(titleStyle.fontSize); sampleCtx.font = `${titleStyle.fontWeight} ${fontSize}px ${titleStyle.fontFamily}`; sampleCtx.direction = 'rtl'; sampleCtx.textAlign = 'right'; sampleCtx.textBaseline = 'alphabetic'
-      const wrapText = (value: string) => { const words = value.trim().split(/\s+/); const result: string[] = []; let line = ''; for (const word of words) { const candidate = line ? `${word} ${line}` : word; if (line && sampleCtx.measureText(candidate).width > width * .98) { result.push(line); line = word } else line = candidate } if (line) result.push(line); return result }
-      const renderedLines = lines.flatMap(line => wrapText(line)); const lineHeight = fontSize * 1.08; const firstBaseline = (height - renderedLines.length * lineHeight) / 2 + fontSize
-      renderedLines.forEach((line, index) => { sampleCtx.fillStyle = '#000'; sampleCtx.fillText(line, width * .98, firstBaseline + index * lineHeight) })
-      const data = sampleCtx.getImageData(0, 0, width, height).data; const next: Particle[] = []
-      const accentStart = firstBaseline + (renderedLines.length - 1) * lineHeight - fontSize
-      for (let y = 0; y < height; y += 3) for (let x = 0; x < width; x += 3) if (data[(y * width + x) * 4 + 3] > 100) next.push({ x:x + (Math.random() - .5) * 14, y:y + (Math.random() - .5) * 14, tx:x, ty:y, vx:0, vy:0, accent:y >= accentStart, alpha:.93 + Math.random() * .07, radius:1.36 + Math.random() * .72 })
+      sample.width = width; sample.height = height; accentSample.width = width; accentSample.height = height; sampleCtx.clearRect(0, 0, width, height); accentCtx.clearRect(0, 0, width, height)
+      const titleStyle = getComputedStyle(wrap.querySelector('h1') as HTMLElement); const fontSize = parseFloat(titleStyle.fontSize); const font = `${titleStyle.fontWeight} ${fontSize}px ${titleStyle.fontFamily}`
+      for (const renderCtx of [sampleCtx, accentCtx]) { renderCtx.font = font; renderCtx.direction = 'rtl'; renderCtx.textAlign = 'center'; renderCtx.textBaseline = 'alphabetic' }
+      const lineHeight = fontSize * 1.22; const firstBaseline = (height - lines.length * lineHeight) / 2 + fontSize; const centerX = width / 2
+      lines.forEach((line, index) => { const baseline = firstBaseline + index * lineHeight; const lineCenter = centerX + (showLegalMark && index === 0 ? width * .13 : 0); sampleCtx.fillStyle = '#000'; sampleCtx.fillText(line, lineCenter, baseline); if (accentWord && line.includes(accentWord)) { const beforeAccent = line.slice(0, line.indexOf(accentWord)); const lineWidth = sampleCtx.measureText(line).width; const accentRight = lineCenter + lineWidth / 2 - sampleCtx.measureText(beforeAccent).width; accentCtx.save(); accentCtx.textAlign = 'right'; accentCtx.fillStyle = '#000'; accentCtx.fillText(accentWord, accentRight, baseline); accentCtx.restore() } })
+      const data = sampleCtx.getImageData(0, 0, width, height).data; const accentData = accentCtx.getImageData(0, 0, width, height).data; const next: Particle[] = []
+      for (let y = 0; y < height; y += 3) for (let x = 0; x < width; x += 3) if (data[(y * width + x) * 4 + 3] > 100) next.push({ x:x + (Math.random() - .5) * 14, y:y + (Math.random() - .5) * 14, tx:x, ty:y, vx:0, vy:0, accent:accentWord ? accentData[(y * width + x) * 4 + 3] > 100 : y >= firstBaseline + (lines.length - 1) * lineHeight - fontSize, alpha:.93 + Math.random() * .07, radius:1.36 + Math.random() * .72 })
       particles = next
     }
     const draw = () => { animation = 0; if (!activeRef.current) return; const rect = wrap.getBoundingClientRect(); const dark = document.documentElement.dataset.theme === 'dark'; ctx.clearRect(0, 0, rect.width, rect.height); if (!dark) { ctx.save(); ctx.globalAlpha = .14; ctx.drawImage(sample, 0, 0); ctx.restore() } for (const p of particles) { const dx = p.tx - p.x; const dy = p.ty - p.y; const mx = p.x - pointer.x; const my = p.y - pointer.y; const distance = Math.hypot(mx, my); if (distance < 110) { const force = (110 - distance) / 110; p.vx += (mx / (distance || 1)) * force * .75; p.vy += (my / (distance || 1)) * force * .75 } p.vx += dx * .012; p.vy += dy * .012; p.vx *= .88; p.vy *= .88; p.x += p.vx; p.y += p.vy; ctx.fillStyle = dark ? (p.accent ? `rgba(247,190,96,${p.alpha})` : `rgba(255,244,222,${p.alpha})`) : (p.accent ? `rgba(209,135,43,${p.alpha})` : `rgba(61,35,18,${p.alpha})`); ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill() } animation = requestAnimationFrame(draw) }
@@ -155,8 +154,8 @@ function HeroParticleTitle({ lines, active }: { lines: string[], active: boolean
     const move = (event: PointerEvent) => { const rect = canvas.getBoundingClientRect(); pointer = { x:event.clientX - rect.left, y:event.clientY - rect.top } }; const leave = () => { pointer = { x:-1000, y:-1000 } }
     resize(); resumeRef.current = start; start(); window.addEventListener('resize', resize); canvas.addEventListener('pointermove', move); canvas.addEventListener('pointerleave', leave)
     return () => { resumeRef.current = () => {}; cancelAnimationFrame(animation); window.removeEventListener('resize', resize); canvas.removeEventListener('pointermove', move); canvas.removeEventListener('pointerleave', leave) }
-  }, [linesKey])
-  return <div className="hero-particle-title" ref={wrapRef}><canvas ref={canvasRef} aria-hidden="true"/><h1>{lines.map((line, index) => <span className={index === lines.length - 1 ? 'accent' : ''} key={line}>{line}{index < lines.length - 1 && <br/>}</span>)}</h1></div>
+  }, [linesKey, accentWord, showLegalMark])
+  return <div className="hero-particle-title" ref={wrapRef}>{showLegalMark && <span className="hero-title-scale" aria-hidden="true"><LegalScaleMark/></span>}<canvas ref={canvasRef} aria-hidden="true"/><h1>{lines.map((line, index) => <span className={index === lines.length - 1 ? 'accent' : ''} key={line}>{line}{index < lines.length - 1 && <br/>}</span>)}</h1></div>
 }
 
 function Hero() {
@@ -227,7 +226,7 @@ function Hero() {
       <article className="robot-showcase-card robot-showcase-card--risk"><ShieldCheck aria-hidden="true"/><div><strong>{lang.features.items[3][0]}</strong><small>{lang.features.items[3][1]}</small></div></article>
       <div className="robot-showcase-security"><ShieldCheck aria-hidden="true"/><span>{lang.hero.designed}</span><i aria-hidden="true"/></div>
     </div>
-    <div className="hero-copy robot-showcase-copy"><div className="eyebrow top"><span/> {lang.hero.eyebrow}</div><HeroParticleTitle active={heroVisible} lines={locale === 'ar' ? ['حوّل', 'مستنداتك', 'القانونية إلى', 'قرارات أكثر', 'ذكاءً.'] : [lang.hero.title, lang.hero.titleAccent]}/><div className="hero-actions"><Button href="#الاشتراك">{lang.nav.start}</Button><Button secondary>{lang.reference.cta}</Button></div><div className="robot-showcase-proof"><ProofAvatarGroup items={[<span className="proof-avatar proof-avatar--woman"/>, <span className="proof-avatar proof-avatar--man"/>, <span className="proof-avatar proof-avatar--woman proof-avatar--woman-alt"/>, <span className="proof-avatar proof-avatar--count">+1k</span>]}/><small>{lang.hero.designed}</small></div></div>
+    <div className="hero-copy robot-showcase-copy"><div className="eyebrow top"><span/> {lang.hero.eyebrow}</div><HeroParticleTitle active={heroVisible} lines={locale === 'ar' ? ['الذكاء', 'الاصطناعي،', 'بعقلٍ قانوني.'] : [lang.hero.title, lang.hero.titleAccent]} accentWord={locale === 'ar' ? 'قانوني.' : undefined} showLegalMark={locale === 'ar'}/><p className="hero-title-description">{locale === 'ar' ? 'حلول قانونية ذكية تساعدك على فهم المستندات، تحليل القضايا، وإنشاء العقود بدقة وسرعة.' : lang.hero.description}</p><div className="hero-actions"><Button href="#الاشتراك">{lang.nav.start}</Button><Button secondary>{lang.reference.cta}</Button></div><div className="robot-showcase-proof"><ProofAvatarGroup items={[<span className="proof-avatar proof-avatar--woman"/>, <span className="proof-avatar proof-avatar--man"/>, <span className="proof-avatar proof-avatar--woman proof-avatar--woman-alt"/>, <span className="proof-avatar proof-avatar--count">+1k</span>]}/><small>{lang.hero.designed}</small></div></div>
   </section>
 }
 
@@ -245,31 +244,37 @@ function Trust() {
     const firstGroup = section?.querySelector<HTMLElement>('.trust-group')
     if (!section || !track || !firstGroup) return
 
-    const media = gsap.matchMedia()
-    media.add('(prefers-reduced-motion: no-preference)', () => {
-      const tween = gsap.fromTo(track, { x: 0 }, {
-        x: () => -firstGroup.offsetWidth,
-        duration: () => Math.max(24, firstGroup.offsetWidth / 62),
-        ease: 'none',
-        repeat: -1,
-        repeatRefresh: true
-      })
-      const pause = () => tween.pause()
-      const resume = () => tween.resume()
-      section.addEventListener('pointerenter', pause)
-      section.addEventListener('pointerleave', resume)
-      section.addEventListener('focusin', pause)
-      section.addEventListener('focusout', resume)
-
-      return () => {
-        section.removeEventListener('pointerenter', pause)
-        section.removeEventListener('pointerleave', resume)
-        section.removeEventListener('focusin', pause)
-        section.removeEventListener('focusout', resume)
-        tween.kill()
-      }
+    const tween = gsap.fromTo(track, { x: () => -firstGroup.offsetWidth }, {
+      x: 0,
+      duration: () => Math.max(30, firstGroup.offsetWidth / 54),
+      ease: 'none',
+      repeat: -1,
+      repeatRefresh: true,
+      paused: true
     })
-    return () => media.revert()
+    let isVisible = false
+    let isInteracting = false
+    const syncPlayback = () => isVisible && !isInteracting ? tween.play() : tween.pause()
+    const pause = () => { isInteracting = true; syncPlayback() }
+    const resume = () => { isInteracting = false; syncPlayback() }
+    const observer = new IntersectionObserver(([entry]) => {
+      isVisible = entry.isIntersecting
+      syncPlayback()
+    }, { threshold: .12 })
+    observer.observe(section)
+    section.addEventListener('pointerenter', pause)
+    section.addEventListener('pointerleave', resume)
+    section.addEventListener('focusin', pause)
+    section.addEventListener('focusout', resume)
+
+    return () => {
+      observer.disconnect()
+      section.removeEventListener('pointerenter', pause)
+      section.removeEventListener('pointerleave', resume)
+      section.removeEventListener('focusin', pause)
+      section.removeEventListener('focusout', resume)
+      tween.kill()
+    }
   }, { scope: trustRef, dependencies: [lang.trust.intro, ...lang.trust.items] })
 
   return <section ref={trustRef} className="trust trust-marquee-section" aria-label={lang.trust.intro}>
@@ -299,30 +304,53 @@ function RevealSection({ children, className, id }: { children: React.ReactNode,
 }
 
 function EgyptianLawLibrary() {
-  const [start, setStart] = useState(0)
+  const [activeIndex, setActiveIndex] = useState(1)
   const books = [
-    ['القانون المدني', 'أصول الالتزامات والعقود', 'sand'],
-    ['قانون العقوبات', 'القسم العام والخاص', 'ink'],
-    ['القانون التجاري', 'الشركات والأعمال', 'wine'],
-    ['قانون المرافعات', 'إجراءات التقاضي', 'olive'],
-    ['قانون العمل', 'حقوق العامل وصاحب العمل', 'blue'],
-    ['القانون الإداري', 'مبادئ المشروعية', 'clay'],
-    ['الدستور المصري', 'مبادئ ونصوص دستورية', 'night']
+    { id: 'civil', title: 'القانون المدني', subtitle: 'أصول الالتزامات والعقود', category: 'قانون مدني', Icon: ScrollText },
+    { id: 'criminal', title: 'قانون العقوبات', subtitle: 'الجرائم والعقوبات في القانون المصري والخاص', category: 'قانون خاص', Icon: Scale },
+    { id: 'commercial', title: 'القانون التجاري', subtitle: 'الشركات، التاجر، الأوراق التجارية والتعاملات', category: 'قانون تجاري', Icon: BriefcaseBusiness },
+    { id: 'procedural', title: 'قانون المرافعات', subtitle: 'إجراءات التقاضي أمام المحاكم المصرية', category: 'قانون مدني', Icon: FilePenLine },
+    { id: 'labor', title: 'قانون العمل', subtitle: 'حقوق العامل وصاحب العمل', category: 'قانون العمل', Icon: BriefcaseBusiness },
+    { id: 'administrative', title: 'القانون الإداري', subtitle: 'اللوائح والقرارات والعقود الإدارية والموظفين', category: 'قانون إداري', Icon: Landmark },
+    { id: 'constitution', title: 'الدستور المصري', subtitle: 'النصوص الدستورية والحقوق والحريات', category: 'دستور مصري', Icon: FilePenLine }
   ]
-  useEffect(() => {
-    const timer = window.setInterval(() => setStart(value => (value + 1) % books.length), 3000)
-    return () => window.clearInterval(timer)
-  }, [books.length])
-  const visibleBooks = Array.from({ length: 4 }, (_, offset) => books[(start + offset) % books.length])
+  const normalizeIndex = (index: number) => (index + books.length) % books.length
+  const navigate = (direction: -1 | 1) => {
+    setActiveIndex(value => normalizeIndex(value + direction))
+  }
+  const activeBookId = books[activeIndex].id
+  const getCircularOffset = (bookIndex: number) => {
+    const forwardOffset = normalizeIndex(bookIndex - activeIndex)
+    return forwardOffset > Math.floor(books.length / 2) ? forwardOffset - books.length : forwardOffset
+  }
   return <section className="egyptian-law-library" id="المكتبة">
-    <div className="law-library-heading"><span className="eyebrow">المكتبة القانونية المصرية</span><h2>مراجع القانون المصري</h2><p>مجموعة مختارة من أهم القوانين والمراجع التي يحتاجها فريقك القانوني.</p></div>
-    <div className="law-books-carousel">
-      <button className="law-books-arrow previous" type="button" aria-label="الكتب السابقة" onClick={() => setStart(value => (value - 1 + books.length) % books.length)}>←</button>
-      <div className="law-books-track">{visibleBooks.map(([title, subtitle, tone], index) => <article className="law-book" data-tone={tone} key={`${title}-${start}-${index}`}><div className="law-book-spine"/><div className="law-book-cover"><span className="law-book-mark">القانون المصري</span><strong>{title}</strong><small>{subtitle}</small><i>م</i></div></article>)}</div>
-      <button className="law-books-arrow next" type="button" aria-label="الكتب التالية" onClick={() => setStart(value => (value + 1) % books.length)}>→</button>
+    <div className="law-library-heading"><span className="eyebrow">المكتبة القانونية المصرية</span><span className="law-library-heading-mark" aria-hidden="true"><i/><Scale/><i/></span><h2>أهم المراجع القانونية</h2><p>أهم المراجع التي يستند إليها مساعدك القانوني الذكي في فهم القانون والإجابة عن استفساراتك.</p></div>
+    <div className="law-books-carousel" role="region" aria-roledescription="carousel" aria-label="مراجع القانون المصري">
+      <button className="law-books-arrow previous" type="button" aria-label="الكتب السابقة" onClick={() => navigate(-1)}>→</button>
+      <div className="law-books-track">{books.map((book, index) => { const offset = getCircularOffset(index); const Icon = book.Icon; return <article className={`law-book ${book.id === activeBookId ? 'is-active' : ''}`} data-position={offset} data-book-id={book.id} aria-hidden={Math.abs(offset) > 2 ? 'true' : undefined} aria-current={book.id === activeBookId ? 'true' : undefined} key={book.id}><div className="law-book-spine"/><div className="law-book-cover"><span className="law-book-mark">{book.category}</span><span className="law-book-icon-stage"><Icon className="law-book-icon" aria-hidden="true"/></span><strong>{book.title}</strong><small>{book.subtitle}</small><span className="law-book-footer"><BookOpen aria-hidden="true"/></span></div></article> })}</div>
+      <button className="law-books-arrow next" type="button" aria-label="الكتب التالية" onClick={() => navigate(1)}>←</button>
     </div>
-    <div className="law-books-dots" aria-hidden="true">{books.slice(0, 5).map((_, index) => <span className={index === start % 5 ? 'active' : ''} key={index}/>)}</div>
+    <div className="law-books-dots" aria-hidden="true">{books.map(book => <span className={book.id === activeBookId ? 'active' : ''} key={book.id}/>)}</div>
   </section>
+}
+
+function LegalScaleMark() {
+  return <svg viewBox="0 0 120 120" role="presentation">
+    <g className="scale-ink">
+      <path d="M59 22c-4-6-13-7-18-2-7-1-12 5-10 12-6 4-4 13 2 15-1 7 6 12 12 9 4 5 11 2 14-2V22Z"/>
+      <path d="M61 22c4-6 13-7 18-2 7-1 12 5 10 12 6 4 4 13-2 15 1 7-6 12-12 9-4 5-11 2-14-2V22Z"/>
+      <path d="M43 24c-3 4-2 8 2 10-5 1-7 6-5 10M51 20c4 3 5 7 2 11 5 2 6 7 3 11M37 36c5 0 8 3 8 8 4-2 8 0 9 4"/>
+      <path d="M77 24c3 4 2 8-2 10 5 1 7 6 5 10M69 20c-4 3-5 7-2 11-5 2-6 7-3 11M83 36c-5 0-8 3-8 8-4-2-8 0-9 4"/>
+      <path d="M60 15v72M29 55h62"/>
+      <path d="M24 35l-8-2M29 22l-7-6M42 13l-3-8M60 10V3M78 13l3-8M91 22l7-6M96 35l8-2"/>
+      <circle cx="14" cy="47" r="2"/><circle cx="17" cy="22" r="2"/><circle cx="31" cy="8" r="2"/><circle cx="89" cy="8" r="2"/><circle cx="103" cy="22" r="2"/><circle cx="106" cy="47" r="2"/>
+    </g>
+    <g className="scale-accent">
+      <path d="M31 56 22 76M31 56l10 20M89 56 79 76M89 56l9 20"/>
+      <path d="M16 77h31c-2 9-7 13-16 13s-14-4-15-13ZM73 77h32c-2 9-7 13-16 13s-14-4-16-13Z"/>
+      <path d="M60 55v43M49 102h22M43 109h34"/>
+    </g>
+  </svg>
 }
 
 function ReferenceScrollVisuals() {
@@ -629,7 +657,7 @@ function LoginFlow({ open, onClose }: { open: boolean, onClose: () => void }) {
     const endpoint = view === 'login' ? 'login' : view === 'register' ? 'register' : view === 'forgot' ? 'forgot-password' : 'reset-password'
     const payload = view === 'login' ? { email, password } : view === 'register' ? { displayName: fullName, email, password } : view === 'forgot' ? { email } : { email, token: resetToken, password }
     try {
-      const response = await fetch(`http://localhost:5103/api/v1/auth/${endpoint}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      const response = await fetch(`${GUEST_AI_API_BASE}/auth/${endpoint}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       const data = await response.json().catch(() => null)
       if (!response.ok) {
         const validationMessage = data?.errors ? Object.values(data.errors).flat().find((message): message is string => typeof message === 'string') : undefined
